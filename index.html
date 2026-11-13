@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Car Hire Fleet Logbook</title>
+<meta name="description" content="Car hire fleet logbook by Custom Factory. Records are saved on this phone.">
+<meta name="theme-color" content="#2B3036">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fleet Logbook">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+@font-face{font-family:"Barlow";src:url(fonts/barlow-400.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Barlow";src:url(fonts/barlow-600.woff2) format("woff2");font-weight:500 600;font-display:swap}
+@font-face{font-family:"Barlow";src:url(fonts/barlow-700.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Barlow";src:url(fonts/barlow-800.woff2) format("woff2");font-weight:800 900;font-display:swap}
+@font-face{font-family:"Barlow Condensed";src:url(fonts/barlow-condensed-700.woff2) format("woff2");font-weight:600 700;font-display:swap}
+@font-face{font-family:"Barlow Condensed";src:url(fonts/barlow-condensed-800.woff2) format("woff2");font-weight:800 900;font-display:swap}
+:root{
+  /* Custom Factory brand from the printed logbook: steel grey + hi-vis yellow */
+  --steel:#2B3036; --steel-2:#3E464F; --mid:#5D6670; --line:#D3D8DD; --paper:#F2F3F5; --card:#FFFFFF; --tint:#E8EBEE;
+  --yel:#FFD400; --yel-soft:#FFF6C2;
+  --over:#C62828; --over-soft:#FDECEC; --soon:#8A5200; --soon-soft:#FFF0D1; --ok:#2E7D32; --ok-soft:#E6F3E7;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  /* layout: hazard-stripe header, one app column (max 760px), one card per record, bottom tab bar for one-handed use */
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{background:var(--paper);color:var(--steel);font-family:var(--body);font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%}
+body.lock{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #1A73E8;outline-offset:2px}
+.app{max-width:760px;margin:0 auto;padding-bottom:96px}
+.stripe{height:8px;background:repeating-linear-gradient(-45deg,var(--yel) 0 10px,var(--steel) 10px 20px)}
+header.top{background:var(--steel);color:#fff;padding:12px 16px 16px}
+.topline{display:flex;align-items:center;gap:10px;min-height:30px}
+.back{display:inline-flex;align-items:center;gap:4px;background:none;border:1.5px solid #6E7782;color:#fff;border-radius:6px;min-height:32px;padding:0 10px 0 6px;font-weight:700;font-size:14px;cursor:pointer}
+.back svg{width:18px;height:18px}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--steel);background:var(--yel);padding:2px 7px;white-space:nowrap}
+.co{margin-left:auto;font-size:14px;font-weight:600;color:#C9CFD5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+h1{font-family:var(--display);font-weight:800;font-size:32px;line-height:1.05;margin:10px 0 4px;text-wrap:balance}
+.sub{color:#C9CFD5;font-size:15px;text-wrap:pretty}
+main{padding:16px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin:0;display:flex;align-items:center;gap:8px}
+h2::before{content:"";flex:none;width:10px;height:10px;background:var(--yel);border:2px solid var(--steel)}
+h3{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin:0;color:var(--mid)}
+.card>h2,.lsec>h2{margin-bottom:10px}
+p{margin:0}
+.muted{color:var(--mid)}
+.na{color:#9AA2AA}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;border-radius:8px;border:2px solid var(--steel);background:#fff;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.pri{background:var(--yel)}
+.btn.dark{background:var(--steel);color:#fff}
+.btn.danger{border-color:var(--over);color:var(--over);background:#fff}
+.btn.danger.armed{background:var(--over);color:#fff}
+.btn.sm{min-height:36px;padding:0 12px;font-size:14px}
+.btn[disabled]{opacity:.55;cursor:default}
+.qa{display:flex;flex-wrap:wrap;gap:8px}
+.banner{background:var(--yel-soft);border-left:6px solid var(--yel);padding:10px 12px;border-radius:6px;font-size:15px}
+.banner.warn{background:var(--soon-soft);border-left-color:var(--soon)}
+.tip{background:var(--yel-soft);border-left:6px solid var(--yel);padding:10px 12px;border-radius:6px;font-size:15px}
+.tip b{font-weight:800;letter-spacing:.08em;margin-right:6px}
+/* cover panel */
+.cover{background:#fff;border-radius:10px;border:1px solid var(--line);border-top:6px solid var(--yel);padding:14px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.lbl{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--mid)}
+.cv-name{font-family:var(--display);font-weight:800;font-size:28px;line-height:1.1;margin:2px 0 4px;overflow-wrap:anywhere}
+.cv-meta{font-size:14px;color:var(--mid)}
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:#fff;border:1px solid var(--line);border-bottom:4px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;cursor:pointer;text-align:left}
+.tile b{font-family:var(--display);font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
+.tile span{font-size:13px;font-weight:600;color:var(--mid);line-height:1.2}
+.tile.info{border-bottom-color:var(--steel)}
+.tile.soon{border-bottom-color:var(--soon)}
+.tile.soon b{color:var(--soon)}
+/* lists */
+.list{display:flex;flex-direction:column;gap:8px}
+.row{background:#fff;border:1px solid var(--line);border-left:5px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:2px;cursor:pointer;text-align:left}
+.row:hover{border-color:#B8BFC6}
+.row.sel{outline:2.5px solid var(--steel);outline-offset:1px}
+.row.over{border-left-color:var(--over)} .row.soon{border-left-color:var(--soon)} .row.ok{border-left-color:var(--ok)} .row.info{border-left-color:var(--steel)}
+.r-top{grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--mid);font-variant-numeric:tabular-nums}
+.r-main{grid-column:1;font-weight:700;overflow-wrap:anywhere}
+.r-meta,.r-extra,.r-foot{grid-column:1;font-size:14px;color:var(--mid);overflow-wrap:anywhere}
+.r-amt{grid-column:2;grid-row:2/span 3;align-self:center;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.r-act{grid-column:1/-1;margin-top:6px}
+.reg{font-family:var(--display);font-weight:700;font-size:16px;line-height:1.3;background:var(--yel);color:var(--steel);padding:0 6px;border:1.5px solid var(--steel);border-radius:3px;letter-spacing:.05em;white-space:nowrap}
+.no{font-weight:800;color:var(--steel)}
+.pill{font-size:12px;font-weight:800;padding:1px 8px;border-radius:99px;white-space:nowrap;letter-spacing:.02em}
+.pill.over{background:var(--over-soft);color:var(--over)}
+.pill.soon{background:var(--soon-soft);color:var(--soon)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.info{background:var(--steel);color:var(--yel)}
+.pill.mute{background:var(--tint);color:var(--mid)}
+.empty{background:#fff;border:1.5px dashed #B8BFC6;border-radius:8px;padding:16px;color:var(--mid);text-align:center}
+.sumbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.lsec{display:flex;flex-direction:column}
+.fbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fbar label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--mid)}
+.fbar select{width:auto;min-width:180px;flex:1}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips button{flex:none;min-height:38px;padding:0 14px;border-radius:99px;border:1.5px solid #AEB5BD;background:#fff;font-weight:700;font-size:14px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--steel);border-color:var(--steel);color:#fff}
+/* sections grid */
+.inside{display:flex;flex-direction:column;gap:14px}
+.grp-h{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);margin-bottom:6px}
+.secs{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.sec{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;text-align:left}
+.sn{font-family:var(--display);font-weight:800;font-size:20px;color:var(--mid);width:28px;font-variant-numeric:tabular-nums}
+.st b{display:block;font-weight:700}
+.st small{display:block;color:var(--mid);font-size:13px}
+.sc{font-size:12px;font-weight:800;background:var(--tint);border-radius:99px;padding:1px 8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sc.soon{background:var(--soon-soft);color:var(--soon)}
+.sc:empty{display:none}
+/* definition grids */
+.dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 14px;margin:0}
+.dl div{min-width:0}
+.dl dt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mid)}
+.dl dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere;white-space:pre-wrap}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.ch h2{margin:0}
+.ren-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ren-h .mm{color:var(--mid);font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rl{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin:0}
+.ri{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;padding:6px 10px}
+.ri.over{border-left-color:var(--over);background:var(--over-soft)}
+.ri.soon{border-left-color:var(--soon);background:var(--soon-soft)}
+.ri.ok{border-left-color:var(--ok)}
+.ri dt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mid)}
+.ri dd{margin:2px 0 0;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+/* vehicle summary */
+.vsum{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.vsum .big{font-family:var(--display);font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.tabs2{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none;position:sticky;top:0;background:var(--paper);z-index:5}
+.tabs2 button{flex:none;min-height:40px;padding:0 14px;border:0;border-bottom:3px solid transparent;background:none;font-weight:700;color:var(--mid);cursor:pointer}
+.tabs2 button[aria-selected="true"]{color:var(--steel);border-bottom-color:var(--yel)}
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+table.grid{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:14px}
+table.grid th{background:var(--steel);color:#fff;font-size:12px;font-weight:700;text-align:right;padding:8px;white-space:nowrap;vertical-align:bottom}
+table.grid td{border-top:1px solid var(--line);padding:7px 8px;white-space:nowrap;text-align:right;background:#fff}
+table.grid th:first-child,table.grid td:first-child{text-align:left;position:sticky;left:0;z-index:1}
+table.grid th:first-child{background:var(--steel)}
+table.grid tr.tot td{background:var(--yel-soft);border-top:2px solid var(--steel);font-weight:800}
+table.grid tr.grp td{background:var(--yel);font-weight:800;font-size:12px;letter-spacing:.1em;text-transform:uppercase;text-align:left}
+table.grid td.it{white-space:normal;min-width:170px;font-size:14px}
+table.grid td.c{text-align:center;font-weight:800;font-size:16px}
+td.ok{color:var(--ok)} td.fix{color:var(--over);background:var(--over-soft)!important}
+table.grid th .thb{background:none;border:0;color:#fff;font:inherit;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:0}
+table.grid input{width:84px;min-height:38px;text-align:right;padding:6px 8px}
+/* steps */
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:s;position:relative;padding-left:40px;line-height:1.45}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;background:var(--steel);color:var(--yel);font-weight:800;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+/* glovebox card */
+.ecard{background:#fff;border:2px dashed var(--mid);border-radius:10px;padding:14px;max-width:420px}
+.et{background:var(--steel);color:var(--yel);font-weight:800;font-size:14px;letter-spacing:.1em;padding:8px 10px;margin-bottom:10px}
+.kv{display:flex;gap:10px;align-items:baseline;border-bottom:1px solid var(--line);padding:6px 0}
+.kv span{width:130px;flex:none;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mid)}
+.kv b{overflow-wrap:anywhere}
+.ecard ol{margin:10px 0 0;padding-left:20px;font-weight:600;line-height:1.5}
+/* footer */
+.foot{font-size:13px;color:var(--mid);border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:2px}
+.foot b{color:var(--steel)}
+/* bottom nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--steel);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs .in{display:grid;grid-template-columns:repeat(4,1fr);max-width:760px;margin:0 auto}
+nav.tabs button{background:none;border:0;border-top:3px solid transparent;color:#C9CFD5;padding:7px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;font-weight:700;cursor:pointer}
+nav.tabs button[aria-current="page"]{color:#fff;border-top-color:var(--yel)}
+nav.tabs svg{width:24px;height:24px}
+/* sheet */
+.sheet{position:fixed;inset:0;z-index:50;display:none;background:rgba(20,23,26,.6)}
+.sheet.open{display:flex;justify-content:center;align-items:stretch}
+.sh{background:var(--paper);width:100%;max-width:720px;height:100%;display:flex;flex-direction:column}
+@media (min-width:760px){.sheet.open{align-items:center}.sh{height:auto;max-height:94%;border-radius:12px;overflow:hidden}}
+.sh-head{background:var(--steel);color:#fff;display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;flex:none}
+.sh-head h2{color:#fff;font-size:15px;flex:1}
+.sh-x{background:none;border:1.5px solid #6E7782;color:#fff;border-radius:6px;min-height:36px;min-width:36px;cursor:pointer;font-size:20px;line-height:1}
+.sh-body{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:18px;overscroll-behavior:contain}
+.sh-foot{flex:none;background:#fff;border-top:1px solid var(--line);padding:10px 16px;display:flex;flex-direction:column;gap:6px}
+.sh-btns{display:flex;gap:10px;align-items:center}
+.sh-btns .sp{flex:1}
+.sh-msg{font-size:14px;font-weight:600;color:var(--over)}
+.sh-msg:empty{display:none}
+.sh-msg.okm{color:var(--ok)}
+/* forms */
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld.wide{grid-column:1/-1}
+.fld label,.fld .lab{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--mid)}
+.rq{color:var(--over);font-style:normal}
+.hint{font-size:13px;color:var(--mid)}
+input,select,textarea{width:100%;min-height:44px;border:1.5px solid #AEB5BD;border-radius:8px;padding:8px 10px;background:#fff;font-size:16px}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--steel);outline:none;box-shadow:0 0 0 3px var(--yel)}
+.fld.bad input,.fld.bad select,.fld.bad textarea{border-color:var(--over)}
+.chkf{justify-content:flex-end}
+.chk{display:flex!important;align-items:center;gap:10px;min-height:44px;font-size:16px!important;text-transform:none!important;letter-spacing:0!important;color:var(--steel)!important;font-weight:600!important;cursor:pointer}
+.chk input{width:24px;height:24px;min-height:0;accent-color:var(--steel)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{min-height:42px;min-width:46px;padding:0 12px;border:1.5px solid #AEB5BD;border-radius:8px;background:#fff;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--steel);color:#fff;border-color:var(--steel)}
+.ckseg button[data-sv="ok"][aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.ckseg button[data-sv="fix"][aria-pressed="true"]{background:var(--over);border-color:var(--over)}
+.ckg{display:flex;flex-direction:column;gap:0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.ckg h3{background:var(--yel);color:var(--steel);padding:6px 12px}
+.ck{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.ck>span{flex:1;min-width:150px;font-weight:600}
+.hcol{background:#fff;border:1.5px solid var(--steel);border-radius:10px;padding:0 12px 12px;display:flex;flex-direction:column;gap:10px}
+.hct{background:var(--steel);color:var(--yel);font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0 -12px;padding:8px 12px}
+.sgrp{display:flex;flex-direction:column;gap:10px}
+/* damage diagram */
+.dtools{display:flex;flex-direction:column;gap:8px}
+.legend{font-size:14px;color:var(--steel-2)}
+.legend .r{color:var(--over)}
+.diag{display:grid;grid-template-columns:auto 1fr;gap:12px 16px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--steel-2);align-items:center}
+.dv{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.dv.side{grid-column:1/-1}
+.dv em{font-style:normal;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--mid)}
+.dz{position:relative;width:100%;cursor:crosshair;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.dz>div{height:100%}
+.dz svg{display:block;width:100%;height:auto}
+.dv.side .dz{max-width:420px}
+.dv.top .dz{height:250px;width:auto;aspect-ratio:140/300}
+.dv.top svg{height:100%;width:100%}
+.fr2{display:flex;flex-direction:column;gap:10px;align-items:center}
+.fr2 .dz{max-width:200px}
+.flip{transform:scaleX(-1)}
+.mk{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:var(--steel);color:#fff;font:800 13px/22px var(--body);text-align:center;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--steel);padding:0;cursor:pointer}
+.mk.in{background:var(--over);box-shadow:0 0 0 1.5px var(--over)}
+.sigs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sigbox{display:flex;flex-direction:column;gap:4px}
+.sigbox .sl{display:flex;justify-content:space-between;align-items:center}
+.sigbox .sl span{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--mid)}
+.sigbox .sl button{background:none;border:0;color:var(--steel);font-weight:700;text-decoration:underline;cursor:pointer;font-size:14px;min-height:32px}
+.sigbox canvas{width:100%;aspect-ratio:10/3;background:#fff;border:1.5px dashed #AEB5BD;border-radius:8px;touch-action:none;display:block;cursor:crosshair}
+.decl{font-size:13px;color:var(--mid);line-height:1.45}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--steel);color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;z-index:70;max-width:90%;box-shadow:0 6px 20px rgba(0,0,0,.25);display:none}
+.toast.show{display:block}
+.toast.err{background:var(--over)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.btn{position:relative}
+.btn:focus-within{outline:3px solid #1A73E8;outline-offset:2px}
+.phg{display:flex;flex-direction:column;gap:8px}
+.phgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.phw{position:relative}
+.ph{display:block;width:100%;aspect-ratio:1;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--tint);padding:0;cursor:zoom-in}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph.busy,.ph.broken{display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--mid);text-align:center;padding:6px}
+.ph.busy{cursor:progress;background:repeating-linear-gradient(-45deg,var(--tint) 0 8px,#F6F7F8 8px 16px)}
+.ph.broken img{display:none}
+.ph.broken::after{content:"Photo not available"}
+.ph-x{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:50%;border:2px solid #fff;background:var(--steel);color:#fff;font-size:18px;line-height:1;cursor:pointer;padding:0}
+.phnone{font-size:14px}
+.lb{position:fixed;inset:0;z-index:80;background:#0F1113;display:flex;flex-direction:column;color:#fff}
+.lb-top,.lb-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;flex:none}
+.lb-top span{font-weight:700;font-size:15px}
+.lb img{flex:1;min-height:0;width:100%;object-fit:contain}
+.lb button{background:none;border:1.5px solid #6E7782;color:#fff;border-radius:6px;min-height:42px;min-width:42px;padding:0 14px;font-weight:700;cursor:pointer}
+.lb button[disabled]{opacity:.35;cursor:default}
+.bkc.stale{border-left:6px solid var(--soon)}
+.inst{border-top:6px solid var(--yel)}
+.inst p{margin-bottom:10px}
+@media (max-width:420px){h1{font-size:28px}.tile b{font-size:28px}.cv-name{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stripe" aria-hidden="true"></div>
+  <header class="top">
+    <div class="topline">
+      <button class="back" id="hBack" type="button" data-act="back" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Back</button>
+      <span class="kicker">Car Hire Fleet Logbook</span>
+      <span class="co" id="hCo"></span>
+    </div>
+    <h1 id="hTitle">Fleet overview</h1>
+    <div class="sub" id="hSub"></div>
+  </header>
+  <main id="main" aria-live="polite"></main>
+</div>
+
+<nav class="tabs" aria-label="Main">
+  <div class="in">
+    <button type="button" data-act="tab" data-v="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+    <button type="button" data-act="tab" data-v="fleet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 16v-3l2-5h14l2 5v3z"/><circle cx="7.5" cy="16.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/><path d="M3 13h18"/></svg>Fleet</button>
+    <button type="button" data-act="tab" data-v="rentals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM8.5 12h7M8.5 16h5"/></svg>Rentals</button>
+    <button type="button" data-act="tab" data-v="checks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>Checks</button>
+  </div>
+</nav>
+
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div class="sh" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+    <div class="sh-head"><h2 id="shTitle">Entry</h2><button class="sh-x" type="button" data-act="close-sheet" aria-label="Close">×</button></div>
+    <div class="sh-body" id="shBody"></div>
+    <div class="sh-foot">
+      <div class="sh-msg" id="shMsg" role="status"></div>
+      <div class="sh-btns"><button class="btn danger" type="button" id="shDel" data-act="sheet-del">Delete</button><span class="sp"></span><button class="btn" type="button" data-act="close-sheet">Cancel</button><button class="btn pri" type="button" id="shSave" data-act="sheet-save">Save</button></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-labelledby="lbCap">
+  <div class="lb-top"><span id="lbCap">Photo</span><button type="button" data-act="lb-close" aria-label="Close photo">×</button></div>
+  <img id="lbImg" alt="">
+  <div class="lb-nav"><button type="button" id="lbPrev" data-act="lb-prev">Previous</button><span id="lbN"></span><button type="button" id="lbNext" data-act="lb-next">Next</button></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+/* ---------------- helpers ---------------- */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const pad2 = n => String(n).padStart(2, '0');
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
+const nowLocal = () => { const d = new Date(); return `${todayISO()}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+const splitISO = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || '')); return m ? [+m[1], +m[2], +m[3]] : null; };
+const fmtDate = iso => { const p = splitISO(iso); return p ? `${p[2]} ${MON[p[1]-1]} ${p[0]}` : ''; };
+const fmtShort = iso => { const p = splitISO(iso); return p ? `${p[2]} ${MON[p[1]-1]}` : '—'; };
+const fmtDT = s => { if (!s) return ''; const t = /T(\d{2}:\d{2})/.exec(s); return fmtDate(s) + (t ? ', ' + t[1] : ''); };
+const num = v => (v === null || v === undefined || v === '' || isNaN(Number(v))) ? null : Number(v);
+const nf = new Intl.NumberFormat('en-GB', {maximumFractionDigits: 2});
+const n0 = v => num(v) == null ? '' : nf.format(num(v));
+const money = v => num(v) == null ? '' : 'SCR ' + nf.format(num(v));
+const fmtKm = v => num(v) == null ? '' : nf.format(num(v)) + ' km';
+const DAY = 86400000;
+const parseISO = iso => { const p = splitISO(iso); return p ? new Date(p[0], p[1]-1, p[2]) : null; };
+const daysUntil = iso => { const d = parseISO(iso); return d ? Math.round((d - parseISO(todayISO())) / DAY) : null; };
+const plural = (n, w, pl) => `${nf.format(n)} ${n === 1 ? w : (pl || w + 's')}`;
+const join = a => a.filter(x => x !== null && x !== undefined && x !== '' && x !== false).join(' · ');
+const getPath = (o, k) => k.split('.').reduce((a, p) => (a == null ? undefined : a[p]), o);
+const setPath = (o, k, v) => { const ps = k.split('.'); let a = o; ps.slice(0, -1).forEach(p => { if (typeof a[p] !== 'object' || a[p] === null) a[p] = {}; a = a[p]; }); a[ps[ps.length-1]] = v; };
+const clone = o => JSON.parse(JSON.stringify(o || {}));
+const pill = st => st ? `<span class="pill ${st[0]}">${esc(st[1])}</span>` : '';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------------- car drawings (same as the printed logbook) ---------------- */
+const G = '<g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round">';
+const SVG = {
+  side: `<svg viewBox="0 0 320 120" aria-hidden="true">${G}<path d="M18,92 L14,78 Q14,66 28,62 L92,54 L128,26 Q134,22 144,22 L222,22 Q232,22 238,28 L268,54 L296,58 Q306,60 306,72 L306,90 L267,92 A22,22 0 0 0 223,92 L97,92 A22,22 0 0 0 53,92 Z"/><path d="M104,52 L132,30 Q136,27 142,27 L176,27 L176,52 Z"/><path d="M182,52 L182,27 L220,27 Q228,27 233,32 L258,52 Z"/><path d="M179,56 L179,90"/><path d="M150,62 L162,62"/><path d="M205,62 L217,62"/><path d="M18,70 L34,68"/><path d="M296,66 L304,66"/><circle cx="75" cy="92" r="16"/><circle cx="75" cy="92" r="6"/><circle cx="245" cy="92" r="16"/><circle cx="245" cy="92" r="6"/></g></svg>`,
+  top: `<svg viewBox="0 0 140 300" aria-hidden="true">${G}<rect x="20" y="12" width="100" height="276" rx="32"/><path d="M30,98 L110,98 L101,128 L39,128 Z"/><rect x="39" y="132" width="62" height="86" rx="6"/><path d="M39,222 L101,222 L107,246 L33,246 Z"/><path d="M45,30 Q70,22 95,30"/><path d="M45,272 Q70,280 95,272"/><ellipse cx="13" cy="114" rx="7" ry="4"/><ellipse cx="127" cy="114" rx="7" ry="4"/><rect x="9" y="48" width="10" height="34" rx="3"/><rect x="121" y="48" width="10" height="34" rx="3"/><rect x="9" y="214" width="10" height="34" rx="3"/><rect x="121" y="214" width="10" height="34" rx="3"/></g></svg>`,
+  front: `<svg viewBox="0 0 160 112" aria-hidden="true">${G}<path d="M14,88 L14,62 Q14,52 24,50 L40,22 Q44,16 52,16 L108,16 Q116,16 120,22 L136,50 Q146,52 146,62 L146,88 Z"/><path d="M46,46 L57,23 L103,23 L114,46 Z"/><rect x="20" y="58" width="24" height="10" rx="3"/><rect x="116" y="58" width="24" height="10" rx="3"/><rect x="56" y="62" width="48" height="14" rx="3"/><path d="M20,80 L140,80"/><rect x="20" y="88" width="20" height="16" rx="3"/><rect x="120" y="88" width="20" height="16" rx="3"/></g></svg>`,
+  rear: `<svg viewBox="0 0 160 112" aria-hidden="true">${G}<path d="M14,88 L14,62 Q14,52 24,50 L40,22 Q44,16 52,16 L108,16 Q116,16 120,22 L136,50 Q146,52 146,62 L146,88 Z"/><path d="M48,46 L58,25 L102,25 L112,46 Z"/><path d="M18,56 L36,56 L36,70 L18,70 Z"/><path d="M124,56 L142,56 L142,70 L124,70 Z"/><rect x="60" y="60" width="40" height="13" rx="2"/><path d="M20,80 L140,80"/><rect x="20" y="88" width="20" height="16" rx="3"/><rect x="120" y="88" width="20" height="16" rx="3"/></g></svg>`,
+};
+const VIEWN = {left:'Left side', right:'Right side', top:'Top', front:'Front', rear:'Rear'};
+const CODES = [['S','scratch'],['D','dent'],['C','chip / crack'],['B','broken'],['M','missing']];
+
+/* ---------------- logbook fields (same categories and inputs as the printed logbook) ---------------- */
+const T = (k, l, t = 'text', x = {}) => Object.assign({k, l, t}, x);
+const FUEL = ['Petrol','Diesel','Hybrid','EV'];
+const WORKSHOPS = ['Custom Factory'];
+const V_REG = [T('no','No.','num'), T('reg','Reg. no.','text',{req:1, ph:'e.g. S 12345'}), T('make','Make & model'), T('year','Year','num'), T('fuel','Fuel','select',{o:FUEL}), T('colour','Colour'), T('seats','Seats','num'), T('dateIn','Date in fleet','date',{def:todayISO}), T('dateOut','Date out / sold','date')];
+const V_DETAILS = [T('make','Make & model'), T('year','Year','num'), T('vin','VIN / chassis no.'), T('engineNo','Engine no.'), T('engineSize','Engine size'), T('fuel','Fuel type','select',{o:FUEL}), T('trans','Transmission','text',{o:['Manual','Automatic','CVT']}), T('colour','Colour'), T('dateBought','Date bought','date'), T('boughtFrom','Bought from'), T('odoBought','Odometer when bought (km)','num',{u:'km'}), T('price','Purchase price (SCR)','num',{u:'scr'})];
+const V_PARTS = [T('oil','Engine oil grade & quantity'), T('oilFilter','Oil filter part no.'), T('airFilter','Air filter part no.'), T('cabinFilter','Cabin filter part no.'), T('plugs','Spark plugs / glow plugs'), T('coolant','Coolant type'), T('atf','Gearbox oil / ATF'), T('brakeFluid','Brake fluid'), T('battery','Battery size'), T('wipers','Wiper blade sizes'), T('tyreSize','Tyre size front / rear'), T('tyrePressure','Tyre pressure front / rear')];
+const V_INS = [T('insurer','Insurer'), T('policyNo','Policy no.'), T('cover','Cover type'), T('insExp','Insurance expiry','date'), T('svcKm','Service every (km)','num',{u:'km'}), T('svcMonths','Service every (months)','num'), T('workshop','Workshop','text',{o:WORKSHOPS}), T('workshopPhone','Workshop phone','tel'), T('warranty','Warranty until','date')];
+const V_REN = [T('insExp','Insurance expiry','date'), T('licExp','Vehicle licence expiry','date'), T('testDue','Vehicle test due','date'), T('permitExp','Hire licence / permit expiry','date'), T('nextSvcDate','Next service due (date)','date'), T('nextSvcKm','Next service due (km)','num',{u:'km'}), T('checkedDate','Checked (date)','date',{def:todayISO}), T('checkedBy','Checked (initials)')];
+const V_KEYS = [T('keysCount','No. of keys','num'), T('keyCode','Key / remote code'), T('spareAt','Spare key kept at'), T('keysChecked','Last checked','date',{def:todayISO}), T('keysNotes','Notes','textarea',{w:'wide'})];
+const V_NOTES = [T('notes','Notes','textarea',{w:'wide'})];
+const VGROUPS = {
+  reg:{name:'Register details', f:V_REG}, details:{name:'Vehicle details', f:V_DETAILS}, parts:{name:'Parts & fluids', f:V_PARTS},
+  ins:{name:'Insurance & service plan', f:V_INS}, ren:{name:'Renewals', f:V_REN}, keys:{name:'Keys', f:V_KEYS}, notes:{name:'Notes', f:V_NOTES},
+};
+const COMPANY = [T('name','Company name','text',{w:'wide'}), T('manager','Fleet manager'), T('phone','Phone','tel'), T('started','Logbook started','date',{def:todayISO}), T('vehicles','Number of vehicles','num'), T('phone24','24h phone for glovebox cards','tel')];
+const VSEL = T('vid','Vehicle reg. no.','vehicle',{req:1});
+
+const LOGS = {
+  services: { one:'service', date:'date', hasV:1,
+    fields:[VSEL, T('date','Date','date',{def:todayISO}), T('odo','Odometer (km)','num'), T('work','Work done','textarea',{w:'wide'}), T('parts','Parts replaced','text',{w:'wide'}), T('workshop','Workshop','text',{o:WORKSHOPS}), T('invoice','Invoice no.'), T('cost','Cost (SCR)','num'), T('nextKm','Next due (km)','num',{hint:'Also updates the Renewals tracker.'}), T('nextDate','Next due (date)','date')],
+    card: r => ({main: r.work || 'Service', meta: join([fmtKm(r.odo), r.workshop, r.invoice && 'Invoice ' + r.invoice]), extra: r.parts ? 'Parts: ' + r.parts : '', foot: (r.nextKm != null || r.nextDate) ? 'Next due ' + join([fmtKm(r.nextKm), fmtDate(r.nextDate)]).replace(' · ', ' / ') : '', amt: r.cost}),
+    total: r => num(r.cost) || 0 },
+  repairs: { one:'defect', date:'dateReported', hasV:1,
+    fields:[VSEL, T('dateReported','Date reported','date',{def:todayISO}), T('reportedBy','Reported by'), T('defect','Defect / fault','textarea',{w:'wide', req:1}), T('action','Action taken','textarea',{w:'wide'}), T('dateFixed','Date fixed','date',{hint:'Leave empty while the fault is still open.'}), T('daysOff','Days off road','num'), T('cost','Cost (SCR)','num'), T('initials','Initials')],
+    card: r => ({main: r.defect || 'Defect', meta: join([r.reportedBy && 'Reported by ' + r.reportedBy, num(r.daysOff) != null && plural(num(r.daysOff), 'day') + ' off road']), extra: r.action ? 'Action: ' + r.action : '', amt: r.cost}),
+    status: r => r.dateFixed ? ['ok', 'Fixed ' + fmtDate(r.dateFixed)] : ['soon', 'Open'], total: r => num(r.cost) || 0 },
+  damage: { one:'incident', date:'date', hasV:1, photos:1, tip:'Attach the handover & return report and photos for each entry. They are your proof if the customer disputes the damage.',
+    fields:[VSEL, T('date','Date','date',{def:todayISO}), T('ref','Report / booking no.'), T('customer','Customer'), T('what','What happened / damage','textarea',{w:'wide', req:1}), T('police','Police ref.'), T('claim','Insurance claim no.'), T('cost','Repair cost (SCR)','num'), T('recovered','Recovered (SCR)','num'), T('closed','Closed','check')],
+    card: r => ({main: r.what || 'Incident', meta: join([r.customer, r.ref && 'Ref. ' + r.ref, r.police && 'Police ' + r.police, r.claim && 'Claim ' + r.claim]), foot: num(r.recovered) != null ? 'Recovered ' + money(r.recovered) : '', amt: r.cost}),
+    status: r => r.closed ? ['ok', 'Closed'] : ['soon', 'Open'], total: r => num(r.cost) || 0 },
+  tyres: { one:'tyre entry', name:'Tyres', date:'date', hasV:1,
+    fields:[VSEL, T('date','Date','date',{def:todayISO}), T('odo','Odometer (km)','num'), T('pos','Position','multi',{o:['FL','FR','RL','RR','Spare'], w:'wide'}), T('kind','New / rotate / repair','seg',{o:['New','Rotate','Repair'], w:'wide'}), T('brand','Brand & size'), T('tread','Tread (mm)','num'), T('cost','Cost (SCR)','num'), T('initials','Initials')],
+    card: r => ({main: join([r.kind, r.pos]) || 'Tyres', meta: join([r.brand, fmtKm(r.odo), num(r.tread) != null && n0(r.tread) + ' mm tread']), amt: r.cost}),
+    total: r => num(r.cost) || 0 },
+  batteries: { one:'battery', name:'Battery', date:'dateFitted', hasV:1,
+    fields:[VSEL, T('dateFitted','Date fitted','date',{def:todayISO}), T('odo','Odometer (km)','num'), T('brand','Brand & size'), T('warranty','Warranty until','date'), T('supplier','Supplier'), T('cost','Cost (SCR)','num'), T('initials','Initials')],
+    card: r => ({main: r.brand || 'Battery fitted', meta: join([fmtKm(r.odo), r.supplier, r.warranty && 'Warranty until ' + fmtDate(r.warranty)]), amt: r.cost}),
+    status: r => r.warranty ? (daysUntil(r.warranty) < 0 ? ['mute', 'Warranty ended'] : ['ok', 'Under warranty']) : null, total: r => num(r.cost) || 0 },
+  extras: { one:'extra', name:'Extras & accessories', date:'dateOut', hasV:0,
+    fields:[T('item','Item','text',{req:1, o:['Child seat','Booster seat','Baby seat','GPS','Phone holder','Cooler box','Beach umbrella','Snorkel set']}), T('qty','Qty','num'), T('serial','Serial / ID'), T('fittedTo','Fitted to (reg.)','vehicle'), T('dateOut','Date out','date'), T('dateBack','Date back','date'), T('notes','Condition / notes','textarea',{w:'wide'})],
+    card: r => ({main: (num(r.qty) ? n0(r.qty) + ' × ' : '') + (r.item || 'Item'), meta: join([r.serial && 'ID ' + r.serial, r.fittedTo && 'Fitted to ' + vreg(r.fittedTo), r.dateBack && 'Back ' + fmtDate(r.dateBack)]), extra: r.notes || ''}),
+    status: r => r.dateOut && !r.dateBack ? ['info', 'Out'] : null },
+};
+
+const CHECK = [
+  ['Outside', [['o1','Body clean, no new damage'],['o2','All lights & indicators work'],['o3','Tyres: pressure, tread, no cuts'],['o4','Spare tyre, jack & wheel brace'],['o5','Windscreen, wipers & washer fluid'],['o6','Mirrors & number plates']]],
+  ['Inside', [['i1','Interior clean, no rubbish'],['i2','Seat belts work'],['i3','A/C blows cold'],['i4','Horn works'],['i5','No warning lights on dash'],['i6','Fuel level recorded'],['i7','Documents in car']]],
+  ['Under the bonnet', [['b1','Engine oil level'],['b2','Coolant level'],['b3','Brake fluid level'],['b4','No leaks under the car']]],
+];
+const CHECK_ITEMS = CHECK.flatMap(g => g[1]);
+
+const HO_RENT = [T('customer','Customer name','text',{req:1}), T('phone','Phone','tel'), T('licence','Driving licence no.'), T('licCountry','Licence country'), T('address','Hotel / address','text',{w:'wide'}), T('booking','Booking / agreement no.'), VSEL, T('model','Make & model')];
+const hoSide = (p, dep) => [T(p+'.dt','Date & time','datetime'), T(p+'.odo','Odometer (km)','num'), T(p+'.fuel','Fuel level','seg',{o:['E','¼','½','¾','F'], w:'wide'}), T(p+'.clean','Clean inside & out','seg',{o:['Yes','No']}), T(p+'.spare','Spare, jack & tools','seg',{o:['Yes','No']}), T(p+'.docs','Documents in car','seg',{o:['Yes','No']}), T(p+'.extras','Extras given','text',{w:'wide'}), T(p+'.deposit',dep,'num'), T(p+'.staff','Staff name')];
+const HO_OUT = hoSide('out', 'Deposit taken (SCR)');
+const HO_IN = hoSide('in', 'Deposit back (SCR)');
+const SIGS = [['co','Customer · check-out'],['so','Staff · check-out'],['ci','Customer · return'],['si','Staff · return']];
+
+const MF = [['daysRented','Days rented'],['daysOff','Days off road'],['km','Km driven'],['service','Service (SCR)'],['repairs','Repairs (SCR)'],['tyres','Tyres / battery (SCR)'],['other','Other (SCR)']];
+const COSTF = ['service','repairs','tyres','other'];
+
+const SEC = {
+  fleet:{n:1, name:'Fleet register', desc:'One list of every vehicle you run', tag:'Fleet', sub:'Every vehicle in your fleet on one page.'},
+  renewals:{n:2, name:'Renewals tracker', desc:'Insurance, licences, tests and services due', tag:'Fleet', sub:'Never get caught with an expired document or an overdue service.'},
+  keys:{n:3, name:'Keys & extras register', desc:'Spare keys, child seats and other extras', tag:'Fleet', sub:'Know where every key, child seat and accessory is.'},
+  profiles:{n:4, name:'Vehicle profile', desc:'Specs, parts, insurance: one per car', tag:'Vehicle file', sub:'One per car. Choose a car to open its vehicle file.'},
+  services:{n:5, name:'Service record', desc:'Every service with odometer and cost', tag:'Vehicle file', sub:'Log every service with the odometer reading and the invoice.'},
+  repairs:{n:6, name:'Repairs & defects log', desc:'Faults reported and how they were fixed', tag:'Vehicle file', sub:'Faults found by staff or customers, and how they were fixed.'},
+  damage:{n:7, name:'Damage & incident log', desc:'Accidents, claims and money recovered', tag:'Vehicle file', sub:'Accidents, damage and claims, with what was recovered.'},
+  tyres:{n:8, name:'Tyres & battery log', desc:'Replacements, rotations and warranties', tag:'Vehicle file', sub:'Replacements, rotations, repairs and warranties.'},
+  monthly:{n:9, name:'Monthly summary', desc:'Days on hire and costs, month by month', tag:'Vehicle file', sub:'Days on hire and costs per month. Fill in on the 1st of each month.'},
+  checks:{n:10, name:'Vehicle-ready checklist', desc:'Quick check before every rental', tag:'Every rental', sub:'Tick each item before the car goes out. ✓ OK  ✗ Fix first'},
+  rentals:{n:11, name:'Handover & return report', desc:'Condition, fuel, km and signatures', tag:'Every rental', sub:'One per rental. Keep it with the rental agreement.'},
+  breakdown:{n:12, name:'Breakdown & accident steps', desc:'Plus a glovebox card for each car', tag:'In the car', sub:'Brief every driver. Put a card in every car.'},
+};
+const TOPS = ['home','help','backup', ...Object.keys(SEC)];
+const TABS = ['home','fleet','rentals','checks'];
+
+/* ---------------- state ---------------- */
+const COLS = ['vehicles','services','repairs','damage','tyres','batteries','extras','monthly','checks','handovers'];
+const S = {company: {}};
+COLS.forEach(c => { S[c] = []; });
+let MODE = 'connecting', canWrite = true, slowNote = false, IDB = null, META = {};
+const MEMPH = {};
+const URLS = {};
+const W = () => canWrite && (MODE === 'local' || MODE === 'nostore');
+
+const byId = (col, id) => S[col].find(r => r.id === id);
+const vehiclesSorted = () => [...S.vehicles].sort((a, b) => (num(a.no) ?? 1e9) - (num(b.no) ?? 1e9) || String(a.reg || '').localeCompare(String(b.reg || '')));
+const activeVehicles = () => vehiclesSorted().filter(v => !v.dateOut);
+const vreg = id => { const v = byId('vehicles', id); return v ? (v.reg || 'No reg.') : 'Removed car'; };
+const isOnHire = h => !!(h.out && h.out.dt && !(h.in && h.in.dt));
+const openHire = vid => S.handovers.find(h => h.vid === vid && isOnHire(h));
+function latestOdo(vid) {
+  let m = null; const t = x => { x = num(x); if (x != null && (m == null || x > m)) m = x; };
+  const v = byId('vehicles', vid); if (v) t(v.odoBought);
+  S.services.forEach(r => r.vid === vid && t(r.odo));
+  S.tyres.forEach(r => r.vid === vid && t(r.odo));
+  S.batteries.forEach(r => r.vid === vid && t(r.odo));
+  S.handovers.forEach(h => { if (h.vid === vid) { t(h.out && h.out.odo); t(h.in && h.in.odo); } });
+  return m;
+}
+const REN = [['insExp','Insurance','expired','expires'],['licExp','Vehicle licence','expired','expires'],['testDue','Vehicle test','overdue','due'],['permitExp','Hire licence / permit','expired','expires'],['nextSvcDate','Service','overdue','due']];
+function alertsFor(v) {
+  const out = [];
+  if (v.dateOut) return out;
+  for (const [k, label, past, fut] of REN) {
+    const d = daysUntil(v[k]); if (d == null) continue;
+    if (d < 0) out.push({lvl:'over', sort:d, text:`${label} ${past} ${plural(-d, 'day')} ago`, when:fmtDate(v[k])});
+    else if (d === 0) out.push({lvl:'over', sort:0, text:`${label} ${fut} today`, when:fmtDate(v[k])});
+    else if (d <= 30) out.push({lvl:'soon', sort:d, text:`${label} ${fut} in ${plural(d, 'day')}`, when:fmtDate(v[k])});
+  }
+  const nk = num(v.nextSvcKm), odo = latestOdo(v.id);
+  if (nk != null && odo != null) {
+    const rem = nk - odo;
+    if (rem <= 0) out.push({lvl:'over', sort:-0.5, text:`Service overdue by ${fmtKm(-rem)}`, when:`Due at ${fmtKm(nk)}, last reading ${fmtKm(odo)}`});
+    else if (rem <= 1000) out.push({lvl:'soon', sort:10, text:`Service due in ${fmtKm(rem)}`, when:`Due at ${fmtKm(nk)}, last reading ${fmtKm(odo)}`});
+  }
+  return out;
+}
+function dateStatus(iso, k) {
+  const d = daysUntil(iso); if (d == null) return null;
+  const past = (k === 'testDue' || k === 'nextSvcDate') ? 'Overdue' : 'Expired';
+  if (d < 0) return ['over', past];
+  if (d === 0) return ['over', 'Today'];
+  if (d <= 30) return ['soon', 'In ' + plural(d, 'day')];
+  return ['ok', 'OK'];
+}
+function vStatus(v) {
+  if (v.dateOut) return ['mute', 'Sold ' + fmtDate(v.dateOut)];
+  if (openHire(v.id)) return ['info', 'On hire'];
+  const a = alertsFor(v);
+  if (a.some(x => x.lvl === 'over')) return ['over', 'Overdue'];
+  if (a.length) return ['soon', 'Due soon'];
+  return ['ok', 'Available'];
+}
+const nextNo = () => S.vehicles.reduce((m, v) => Math.max(m, num(v.no) || 0), 0) + 1;
+const nextReportNo = () => String(S.handovers.reduce((m, h) => Math.max(m, parseInt(h.reportNo, 10) || 0), 0) + 1);
+
+/* ---------------- saving (on this phone) ---------------- */
+const reqP = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const done = t => new Promise((res, rej) => { t.oncomplete = () => res(); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error('Saving was cancelled.')); });
+function idbOpen() {
+  return new Promise((res, rej) => {
+    if (!window.indexedDB) { rej(new Error('No storage')); return; }
+    let r; try { r = indexedDB.open('fleet-logbook', 1); } catch (e) { rej(e); return; }
+    r.onupgradeneeded = () => { const d = r.result; ['docs', 'photos', 'meta'].forEach(n => { if (!d.objectStoreNames.contains(n)) d.createObjectStore(n); }); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); r.onblocked = () => rej(new Error('Storage is busy'));
+  });
+}
+async function idbPut(name, key, val) { const t = IDB.transaction(name, 'readwrite'); t.objectStore(name).put(val, key); await done(t); }
+async function idbDel(name, key) { const t = IDB.transaction(name, 'readwrite'); t.objectStore(name).delete(key); await done(t); }
+const idbGet = (name, key) => reqP(IDB.transaction(name).objectStore(name).get(key));
+async function idbAll(name) { const st = IDB.transaction(name).objectStore(name); const [k, v] = await Promise.all([reqP(st.getAllKeys()), reqP(st.getAll())]); return k.map((x, i) => [x, v[i]]); }
+function saveErr(e) {
+  if (e && (e.name === 'QuotaExceededError' || /quota/i.test(e.message || ''))) return 'This phone has no room left for the logbook. Make a backup, then delete old photos or entries.';
+  return "Couldn't save on this phone. Close the logbook, open it again and retry.";
+}
+let persistAsked = false;
+function askPersist() { if (persistAsked) return; persistAsked = true; try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* not supported */ } }
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function memPut(col, id, data) {
+  if (col === 'company') { S.company = Object.assign({}, data); scheduleRender(); return; }
+  const rec = Object.assign({}, data, {id});
+  const i = S[col].findIndex(r => r.id === id);
+  if (i >= 0) S[col][i] = rec; else S[col].push(rec);
+  S[col] = [...S[col]]; scheduleRender();
+}
+async function putDoc(col, id, data) {
+  const val = clone(data); delete val.id;
+  if (IDB) { try { await idbPut('docs', col + '/' + id, val); } catch (e) { throw new Error(saveErr(e)); } askPersist(); }
+  memPut(col, id, val);
+}
+async function mergeDoc(col, id, data) {
+  const cur = col === 'company' ? S.company : byId(col, id);
+  await putDoc(col, id, Object.assign({}, cur || {}, clone(data)));
+}
+async function delDoc(col, id) {
+  if (IDB) { try { await idbDel('docs', col + '/' + id); } catch (e) { throw new Error(saveErr(e)); } }
+  S[col] = S[col].filter(r => r.id !== id); scheduleRender();
+}
+async function setMeta(k, v) { META[k] = v; if (IDB) { try { await idbPut('meta', k, v); } catch (e) { /* reminder only */ } } }
+async function loadAll() {
+  COLS.forEach(c => { S[c] = []; }); S.company = {};
+  (await idbAll('docs')).forEach(([k, v]) => {
+    const i = String(k).indexOf('/'); if (i < 0) return;
+    const col = k.slice(0, i), id = k.slice(i + 1);
+    if (col === 'company') S.company = Object.assign({}, v); else if (S[col]) S[col].push(Object.assign({}, v, {id}));
+  });
+  META = Object.fromEntries(await idbAll('meta'));
+}
+async function boot() {
+  try { IDB = await idbOpen(); await loadAll(); MODE = 'local'; }
+  catch (e) { IDB = null; MODE = 'nostore'; }
+  render();
+}
+
+/* ---------------- rendering ---------------- */
+let rq = 0;
+function scheduleRender() { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; render(); }); }
+const nav = {stack: [{v:'home'}]};
+const top = () => nav.stack[nav.stack.length - 1];
+const VIEWS = {};
+
+function bannerHTML() {
+  if (MODE === 'connecting') return '<div class="banner">Opening your logbook…</div>';
+  if (MODE === 'nostore') return '<div class="banner warn"><b>Not saving.</b> This browser won’t let the logbook save records, so anything you add is lost when you close it. Don’t use private browsing, and open the logbook from your home screen.</div>';
+  return '';
+}
+function render() {
+  const st = top();
+  const view = VIEWS[st.v] || VIEWS.home;
+  const r = view(st);
+  $('#hTitle').textContent = r.title;
+  $('#hSub').textContent = r.sub || '';
+  $('#hSub').hidden = !r.sub;
+  $('#hBack').hidden = nav.stack.length < 2;
+  $('#hCo').textContent = S.company.name || '';
+  $('#main').innerHTML = bannerHTML() + r.body;
+  const cur = ([...nav.stack].reverse().find(s => TABS.includes(s.v)) || {v:'home'}).v;
+  $$('nav.tabs button').forEach(b => { if (b.dataset.v === cur) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+}
+function syncHash() {
+  const v = top().v;
+  if (TOPS.includes(v) && location.hash.slice(1) !== v) { try { location.hash = v; } catch (e) { /* ignore */ } }
+}
+function go(v, params = {}, reset = false) {
+  const entry = Object.assign({v}, params);
+  if (reset) nav.stack = v === 'home' ? [entry] : [{v:'home'}, entry];
+  else nav.stack.push(entry);
+  syncHash(); window.scrollTo(0, 0); render();
+}
+function back() { if (nav.stack.length > 1) { nav.stack.pop(); syncHash(); window.scrollTo(0, 0); render(); } }
+window.addEventListener('hashchange', () => {
+  const h = location.hash.slice(1) || 'home';
+  if (!TOPS.includes(h) || top().v === h) return;
+  if (nav.stack.length > 1 && nav.stack[nav.stack.length - 2].v === h) { nav.stack.pop(); render(); return; }
+  nav.stack = h === 'home' ? [{v:'home'}] : [{v:'home'}, {v:h}]; render();
+});
+
+/* ---------------- form building ---------------- */
+function fieldHTML(f, val, o = {}) {
+  const id = 'f_' + f.k.replace(/[^a-zA-Z0-9]/g, '_');
+  let v = val;
+  if ((v === undefined || v === null || v === '') && o.isNew && f.def) v = typeof f.def === 'function' ? f.def() : f.def;
+  if (v === undefined || v === null) v = '';
+  const cls = 'fld' + (f.w ? ' ' + f.w : '');
+  const rq = f.req ? ' <i class="rq" aria-hidden="true">*</i>' : '';
+  const hint = f.hint ? `<small class="hint">${esc(f.hint)}</small>` : '';
+  const ph = f.ph ? ` placeholder="${esc(f.ph)}"` : '';
+  if (f.t === 'textarea') return `<div class="${cls}"><label for="${id}">${esc(f.l)}${rq}</label><textarea id="${id}" data-k="${f.k}" rows="3"${ph}>${esc(v)}</textarea>${hint}</div>`;
+  if (f.t === 'select') return `<div class="${cls}"><label for="${id}">${esc(f.l)}${rq}</label><select id="${id}" data-k="${f.k}"><option value="">Choose</option>${f.o.map(x => `<option${x === v ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select>${hint}</div>`;
+  if (f.t === 'vehicle') {
+    const vs = vehiclesSorted();
+    if (!v && o.isNew && f.req) { const a = activeVehicles(); if (a.length === 1) v = a[0].id; }
+    let opts = vs.map(x => `<option value="${esc(x.id)}"${x.id === v ? ' selected' : ''}>${esc(x.reg || 'No reg.')}${x.make ? ' · ' + esc(x.make) : ''}${x.dateOut ? ' (sold)' : ''}</option>`).join('');
+    if (v && !byId('vehicles', v)) opts += `<option value="${esc(v)}" selected>Removed car</option>`;
+    const h2 = vs.length ? hint : '<small class="hint">Add cars in the Fleet register first.</small>';
+    return `<div class="${cls}"><label for="${id}">${esc(f.l)}${rq}</label><select id="${id}" data-k="${f.k}"><option value="">${f.req ? 'Choose a car' : 'None'}</option>${opts}</select>${h2}</div>`;
+  }
+  if (f.t === 'seg' || f.t === 'multi') {
+    const multi = f.t === 'multi';
+    const sel = new Set(String(v).split(' ').filter(Boolean));
+    const btns = f.o.map(x => `<button type="button" ${multi ? 'data-mv' : 'data-sv'}="${esc(x)}" aria-pressed="${multi ? sel.has(x) : x === v}">${esc(x)}</button>`).join('');
+    return `<div class="${cls}"><span class="lab" id="${id}_l">${esc(f.l)}${rq}</span><div class="seg${multi ? ' multi' : ''}" id="${id}" role="group" aria-labelledby="${id}_l" data-k="${f.k}" ${multi ? 'data-multi' : 'data-seg'} data-v="${esc(v)}">${btns}</div>${hint}</div>`;
+  }
+  if (f.t === 'check') return `<div class="${cls} chkf"><label class="chk" for="${id}"><input type="checkbox" id="${id}" data-k="${f.k}"${v ? ' checked' : ''}><span>${esc(f.l)}</span></label></div>`;
+  const type = ({num:'number', date:'date', datetime:'datetime-local', tel:'tel'})[f.t] || 'text';
+  const extra = f.t === 'num' ? ' inputmode="decimal" step="any" min="0"' : '';
+  const list = f.o ? ` list="${id}_dl"` : '';
+  const dl = f.o ? `<datalist id="${id}_dl">${f.o.map(x => `<option value="${esc(x)}"></option>`).join('')}</datalist>` : '';
+  return `<div class="${cls}"><label for="${id}">${esc(f.l)}${rq}</label><input id="${id}" type="${type}" data-k="${f.k}" value="${esc(v)}"${extra}${list}${ph} autocomplete="off">${dl}${hint}</div>`;
+}
+const formHTML = (fields, rec, o = {}) => `<div class="fg">${fields.map(f => fieldHTML(f, getPath(rec || {}, f.k), o)).join('')}</div>`;
+function readForm(root) {
+  const out = {};
+  $$('[data-k]', root).forEach(el => {
+    let v;
+    if ('seg' in el.dataset || 'multi' in el.dataset) v = el.dataset.v || '';
+    else if (el.type === 'checkbox') v = el.checked;
+    else if (el.type === 'number') v = el.value === '' ? null : Number(el.value);
+    else v = el.value.trim();
+    setPath(out, el.dataset.k, v);
+  });
+  return out;
+}
+function validate(fields, data, root) {
+  $$('.fld.bad', root).forEach(e => e.classList.remove('bad'));
+  for (const f of fields) {
+    if (!f.req) continue;
+    const v = getPath(data, f.k);
+    if (v === null || v === undefined || v === '') {
+      const el = root.querySelector(`[data-k="${f.k}"]`);
+      if (el) { el.closest('.fld').classList.add('bad'); el.focus(); }
+      throw new Error(`${f.l} is needed.`);
+    }
+  }
+}
+function fmtVal(f, v) {
+  if (v === undefined || v === null || v === '' || v === false && f.t !== 'check') return '<span class="na">—</span>';
+  if (f.t === 'date') return esc(fmtDate(v));
+  if (f.t === 'datetime') return esc(fmtDT(v));
+  if (f.t === 'check') return v ? 'Yes' : 'No';
+  if (f.t === 'vehicle') return esc(vreg(v));
+  if (f.u === 'km') return esc(fmtKm(v));
+  if (f.u === 'scr') return esc(money(v));
+  if (f.t === 'num') return esc(n0(v));
+  return esc(v);
+}
+const dlHTML = (fields, rec) => `<dl class="dl">${fields.map(f => `<div class="${f.w === 'wide' ? 'wide' : ''}"><dt>${esc(f.l)}</dt><dd>${fmtVal(f, getPath(rec, f.k))}</dd></div>`).join('')}</dl>`;
+
+/* ---------------- sheet (add / edit) ---------------- */
+const sheet = {save:null, del:null, cleanup:null, armed:0};
+function shMsg(t, ok) { const m = $('#shMsg'); m.textContent = t || ''; m.classList.toggle('okm', !!ok); }
+function openSheet({title, html, save, del, saveLabel, after}) {
+  sheet.pm = null;
+  $('#shTitle').textContent = title;
+  const body = $('#shBody'); body.innerHTML = html; body.scrollTop = 0; hydratePhotos(body);
+  sheet.save = save || null; sheet.del = del || null; sheet.cleanup = null; disarm();
+  $('#shSave').textContent = saveLabel || 'Save';
+  $('#shSave').hidden = !save || !W();
+  $('#shSave').disabled = false;
+  $('#shDel').hidden = !del || !W();
+  shMsg('');
+  $('#sheet').classList.add('open'); $('#sheet').setAttribute('aria-hidden', 'false');
+  document.body.classList.add('lock');
+  if (after) after(body);
+}
+function closeSheet() {
+  if (sheet.cleanup) sheet.cleanup();
+  if (sheet.pm) { discardPhotos(sheet.pm); sheet.pm = null; }
+  lbClose();
+  $('#sheet').classList.remove('open'); $('#sheet').setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('lock');
+  $('#shBody').innerHTML = ''; sheet.save = sheet.del = null;
+}
+function disarm() { clearTimeout(sheet.armed); const b = $('#shDel'); b.classList.remove('armed'); b.textContent = 'Delete'; }
+async function doSave() {
+  if (!sheet.save) return;
+  const btn = $('#shSave'); btn.disabled = true; shMsg('');
+  try { const ok = await sheet.save($('#shBody')); if (ok !== false) { closeSheet(); toast('Saved'); } }
+  catch (e) { shMsg(e.message || String(e)); }
+  finally { btn.disabled = false; }
+}
+async function doDelete() {
+  const b = $('#shDel');
+  if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Tap again to delete'; sheet.armed = setTimeout(disarm, 4000); return; }
+  disarm();
+  try { await sheet.del(); closeSheet(); toast('Deleted'); } catch (e) { shMsg(e.message || String(e)); }
+}
+let toastT = 0;
+function toast(t, err) { const el = $('#toast'); el.textContent = t; el.classList.toggle('err', !!err); el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600); }
+
+/* ---------------- list pieces ---------------- */
+function rowHTML(col, r, o = {}) {
+  const d = LOGS[col]; const c = d.card(r); const st = d.status ? d.status(r) : null;
+  const dt = r[d.date] ? fmtDate(r[d.date]) : '';
+  return `<div class="row ${st ? st[0] : ''}" role="button" tabindex="0" data-act="edit-log" data-col="${col}" data-id="${esc(r.id)}">
+    <div class="r-top">${dt ? `<span>${dt}</span>` : ''}${d.hasV && !o.fixed ? `<span class="reg">${esc(vreg(r.vid))}</span>` : ''}${pill(st)}${r.photos && r.photos.length ? pill(['mute', plural(r.photos.length, 'photo')]) : ''}</div>
+    <div class="r-main">${esc(c.main)}</div>
+    ${c.meta ? `<div class="r-meta">${esc(c.meta)}</div>` : ''}${c.extra ? `<div class="r-extra">${esc(c.extra)}</div>` : ''}${c.foot ? `<div class="r-foot">${esc(c.foot)}</div>` : ''}
+    ${num(c.amt) != null ? `<div class="r-amt">${esc(money(c.amt))}</div>` : ''}
+  </div>`;
+}
+function logSection(col, o = {}) {
+  const d = LOGS[col]; const vid = o.vid || '';
+  const rows = S[col].filter(r => !vid || (col === 'extras' ? r.fittedTo === vid : r.vid === vid))
+    .sort((a, b) => String(b[d.date] || '').localeCompare(String(a[d.date] || '')) || (b.created || 0) - (a.created || 0));
+  const total = d.total ? rows.reduce((s, r) => s + d.total(r), 0) : null;
+  const open = d.status ? rows.filter(r => { const s = d.status(r); return s && (s[0] === 'soon' || s[0] === 'info'); }).length : 0;
+  const summary = `<span><b>${rows.length}</b> ${rows.length === 1 ? 'entry' : 'entries'}${total ? ` · <b>${esc(money(total))}</b>` : ''}${open ? ` · <b>${open}</b> ${col === 'extras' ? 'out' : 'open'}` : ''}</span>`;
+  const add = W() ? `<button class="btn pri sm" type="button" data-act="new-log" data-col="${col}" data-vid="${esc(vid)}">Add ${esc(d.one)}</button>` : '';
+  const list = rows.length ? `<div class="list">${rows.map(r => rowHTML(col, r, {fixed: !!o.fixed})).join('')}</div>` : `<div class="empty">No ${esc(d.name ? d.name.toLowerCase() : 'entries')} logged${vid ? ' for this car' : ''} yet.</div>`;
+  return `<section class="lsec">${o.heading ? `<h2>${esc(d.name)}</h2>` : ''}<div class="sumbar">${summary}${add}</div>${list}</section>`;
+}
+function carFilter(vid, all = true) {
+  const vs = vehiclesSorted();
+  return `<div class="fbar"><label for="flt">Car</label><select id="flt" data-change="filter">${all ? '<option value="">All cars</option>' : ''}${vs.map(v => `<option value="${esc(v.id)}"${v.id === vid ? ' selected' : ''}>${esc(v.reg || 'No reg.')}${v.make ? ' · ' + esc(v.make) : ''}${v.dateOut ? ' (sold)' : ''}</option>`).join('')}</select></div>`;
+}
+const tipHTML = t => `<div class="tip"><b>TIP</b>${esc(t)}</div>`;
+const emptyFleet = () => `<div class="empty">No cars yet. ${W() ? '<br><br><button class="btn pri" type="button" data-act="new-car">Add your first car</button>' : ''}</div>`;
+
+/* ---------------- views ---------------- */
+VIEWS.home = () => {
+  const co = S.company || {}; const vs = activeVehicles();
+  const att = []; vs.forEach(v => alertsFor(v).forEach(a => att.push(Object.assign({v}, a))));
+  att.sort((a, b) => (a.lvl === b.lvl ? 0 : a.lvl === 'over' ? -1 : 1) || a.sort - b.sort);
+  const onHire = S.handovers.filter(isOnHire).length, openDef = S.repairs.filter(r => !r.dateFixed).length, openDmg = S.damage.filter(r => !r.closed).length;
+  const meta = join([co.manager && 'Fleet manager: ' + co.manager, co.phone, plural(vs.length, 'car') + ' in the register']);
+  let b = `<section class="cover"><div><span class="lbl">This logbook belongs to</span><div class="cv-name">${co.name ? esc(co.name) : '<span class="na">Add your company name</span>'}</div><div class="cv-meta">${esc(meta)}</div></div>${W() ? '<button class="btn sm" type="button" data-act="edit-company">Edit</button>' : ''}</section>`;
+  b += installCard();
+  if (!S.vehicles.length && MODE !== 'connecting') b += `<section class="card"><h2>Start here</h2><ol class="steps">
+      <li><b>Add your company details.</b> The name and 24h phone go on every glovebox card.</li>
+      <li><b>Add every car to the Fleet register,</b> then its renewal dates.</li>
+      <li><b>Use a Handover &amp; return report for every rental.</b> Mark damage on the diagrams and get the customer's signature both times.</li></ol>
+      ${W() ? '<div class="qa" style="margin-top:14px"><button class="btn pri" type="button" data-act="new-car">Add your first car</button><button class="btn" type="button" data-act="edit-company">Company details</button></div>' : ''}</section>`;
+  b += `<div class="tiles">
+    <button class="tile${onHire ? ' info' : ''}" type="button" data-act="go" data-v="rentals"><b>${onHire}</b><span>On hire now</span></button>
+    <button class="tile${openDef ? ' soon' : ''}" type="button" data-act="go" data-v="repairs"><b>${openDef}</b><span>Open defects</span></button>
+    <button class="tile${openDmg ? ' soon' : ''}" type="button" data-act="go" data-v="damage"><b>${openDmg}</b><span>Open damage claims</span></button></div>`;
+  b += `<section class="card"><h2>Needs attention</h2>${att.length ? `<div class="list">${att.slice(0, 10).map(a => `<div class="row ${a.lvl}" role="button" tabindex="0" data-act="open-car" data-id="${esc(a.v.id)}"><div class="r-top"><span class="reg">${esc(a.v.reg)}</span>${pill([a.lvl, a.lvl === 'over' ? 'Overdue' : 'Due soon'])}</div><div class="r-main">${esc(a.text)}</div><div class="r-meta">${esc(a.when)}</div></div>`).join('')}</div>${att.length > 10 ? `<p class="muted" style="margin-top:8px">${att.length - 10} more in the <a href="#renewals">Renewals tracker</a>.</p>` : ''}` : `<p class="muted">${vs.length ? 'Nothing expires or falls due in the next 30 days.' : 'Renewal dates you add will show here 30 days before they fall due.'}</p>`}</section>`;
+  b += backupCard();
+  if (W()) b += `<div class="qa"><button class="btn pri" type="button" data-act="new-ho">New handover</button><button class="btn" type="button" data-act="new-check">Vehicle-ready check</button><button class="btn" type="button" data-act="new-car">Add a car</button></div>`;
+  const counts = {
+    fleet: [plural(vs.length, 'car')], renewals: att.length ? [att.length + ' due', 'soon'] : [''], keys: [S.extras.length ? plural(S.extras.length, 'extra') : ''],
+    profiles: [''], services: [S.services.length || ''], repairs: openDef ? [openDef + ' open', 'soon'] : [S.repairs.length || ''], damage: openDmg ? [openDmg + ' open', 'soon'] : [S.damage.length || ''],
+    tyres: [(S.tyres.length + S.batteries.length) || ''], monthly: [''], checks: [S.checks.length || ''], rentals: onHire ? [onHire + ' on hire'] : [S.handovers.length || ''], breakdown: [''],
+  };
+  const groups = ['Fleet','Vehicle file','Every rental','In the car'];
+  b += `<section class="inside" aria-label="What's inside">${groups.map(g => `<div><div class="grp-h">${esc(g)}</div><div class="secs">${Object.entries(SEC).filter(([, s]) => s.tag === g).map(([k, s]) => `<button class="sec" type="button" data-act="go" data-v="${k}"><span class="sn">${pad2(s.n)}</span><span class="st"><b>${esc(s.name)}</b><small>${esc(s.desc)}</small></span><span class="sc ${counts[k][1] || ''}">${esc(counts[k][0])}</span></button>`).join('')}</div></div>`).join('')}</section>`;
+  b += `<div class="qa"><button class="btn sm" type="button" data-act="go" data-v="help">How to use this logbook</button><button class="btn sm" type="button" data-act="go" data-v="backup">Backup &amp; restore</button></div>`;
+  b += `<div class="foot"><span>Made by <b>CUSTOM FACTORY</b> · Fleet servicing &amp; repairs · Providence &amp; La Misère, Mahé</span><span>WhatsApp +248 282 6787 · customfactory82@gmail.com</span></div>`;
+  const d = new Date();
+  return {title: 'Fleet overview', sub: `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`, body: b};
+};
+
+VIEWS.help = () => ({title: 'How to use this logbook', sub: 'Set it up once, then keep it up to date in a few minutes a day.', body: `<section class="card"><ol class="steps">
+  <li><b>Fill in the fleet pages.</b> Add every vehicle to the Fleet register and its renewal dates to the Renewals tracker.</li>
+  <li><b>Complete each car's vehicle file.</b> Open the car and fill in its profile: specs, parts, fluids and insurance.</li>
+  <li><b>Check before every rental.</b> Run through the Vehicle-ready checklist when you prepare the car. Anything marked ✗ goes straight into the Repairs &amp; defects log.</li>
+  <li><b>Record every handover and return.</b> Use one Handover &amp; return report per rental. Mark damage on the diagrams and get the customer's signature both times.</li>
+  <li><b>Log it the same day.</b> Services, repairs, tyres and incidents go straight into that car's vehicle file.</li>
+  <li><b>Review on the 1st of each month.</b> Check the Renewals tracker and fill in the Monthly summary. Use “Fill from logs” to pull in the numbers you have already logged.</li></ol></section>
+  <section class="card"><h2>Where your records are kept</h2><p>Everything you enter, photos included, is saved on this phone only. Nobody else can see it, and the logbook works without internet. Records don’t move to another phone by themselves: use a backup to move them.</p></section>
+  <section class="card"><h2>Back up every week</h2><p>Open <a href="#backup">Backup &amp; restore</a>, make a backup file and send it to yourself on WhatsApp, or save it to Google Drive or iCloud. If the phone is lost or broken, open the logbook on the new phone and restore the file.</p></section>
+  <section class="card"><h2>iPhone</h2><p>Add the logbook to your Home Screen (in Safari tap Share, then Add to Home Screen) and always open it from there. Safari can clear saved records for websites that aren’t opened for a week.</p></section>
+  <section class="card"><h2>Photos</h2><p>Add photos to every handover &amp; return report and to damage entries. Each photo is stamped with the date, time, reg. no. and report number, so it stands up if a customer disputes damage.</p></section>
+  <section class="card"><h2>Alerts</h2><p>Home shows anything that expires or falls due in the next 30 days: insurance, vehicle licence, vehicle test, hire licence or permit, and services by date or within 1,000 km.</p></section>`});
+
+VIEWS.fleet = st => {
+  const profiles = st.v === 'profiles';
+  const sold = S.vehicles.filter(v => v.dateOut).length;
+  const list = vehiclesSorted().filter(v => st.sold || !v.dateOut);
+  let b = '';
+  if (W()) b += `<div class="qa"><button class="btn pri" type="button" data-act="new-car">Add a car</button>${sold ? `<button class="btn sm" type="button" data-act="toggle-sold">${st.sold ? 'Hide' : 'Show'} sold cars (${sold})</button>` : ''}</div>`;
+  else if (sold) b += `<div class="qa"><button class="btn sm" type="button" data-act="toggle-sold">${st.sold ? 'Hide' : 'Show'} sold cars (${sold})</button></div>`;
+  b += list.length ? `<div class="list">${list.map(v => { const s = vStatus(v); const odo = latestOdo(v.id); return `<div class="row ${s[0] === 'mute' ? '' : s[0]}" role="button" tabindex="0" data-act="open-car" data-id="${esc(v.id)}">
+    <div class="r-top">${num(v.no) != null ? `<span class="no">No. ${pad2(v.no)}</span>` : ''}<span class="reg">${esc(v.reg || 'No reg.')}</span>${pill(s)}</div>
+    <div class="r-main">${esc(join([v.make, v.year]) || 'Make & model not set')}</div>
+    <div class="r-meta">${esc(join([v.fuel, v.colour, num(v.seats) != null && plural(num(v.seats), 'seat'), v.dateIn && 'In fleet ' + fmtDate(v.dateIn), odo != null && fmtKm(odo)]))}</div></div>`; }).join('')}</div>` : emptyFleet();
+  const s = SEC[profiles ? 'profiles' : 'fleet'];
+  return {title: s.name, sub: s.sub, body: b};
+};
+VIEWS.profiles = VIEWS.fleet;
+
+VIEWS.renewals = () => {
+  const vs = activeVehicles();
+  let b = tipHTML('Check this page on the 1st of every month. Anything due in the next 30 days is marked for you.');
+  b += vs.length ? vs.map(v => {
+    const items = V_REN.slice(0, 5).map(f => { const st = dateStatus(v[f.k], f.k); return `<div class="ri ${st ? st[0] : ''}"><dt>${esc(f.l.replace(' (date)', ''))}</dt><dd>${v[f.k] ? esc(fmtDate(v[f.k])) : '<span class="na">—</span>'}${st && st[0] !== 'ok' ? pill(st) : ''}</dd></div>`; }).join('');
+    const nk = num(v.nextSvcKm), odo = latestOdo(v.id);
+    const kmSt = nk != null && odo != null ? (nk - odo <= 0 ? ['over', 'Overdue'] : nk - odo <= 1000 ? ['soon', 'In ' + fmtKm(nk - odo)] : null) : null;
+    return `<section class="card"><div class="ren-h"><span class="reg">${esc(v.reg)}</span><span class="mm">${esc(v.make || '')}</span>${W() ? `<button class="btn sm" type="button" data-act="edit-veh" data-id="${esc(v.id)}" data-g="ren">Edit</button>` : ''}</div>
+      <dl class="rl">${items}<div class="ri ${kmSt ? kmSt[0] : ''}"><dt>Next service due (km)</dt><dd>${nk != null ? esc(fmtKm(nk)) : '<span class="na">—</span>'}${pill(kmSt)}</dd></div>
+      <div class="ri"><dt>Checked</dt><dd>${esc(join([fmtDate(v.checkedDate), v.checkedBy])) || '<span class="na">—</span>'}</dd></div></dl></section>`;
+  }).join('') : emptyFleet();
+  return {title: SEC.renewals.name, sub: SEC.renewals.sub, body: b};
+};
+
+VIEWS.keys = () => {
+  const vs = activeVehicles();
+  let b = `<section class="lsec"><h2>Keys</h2>${vs.length ? `<div class="list">${vs.map(v => `<div class="row" role="button" tabindex="0" data-act="edit-veh" data-id="${esc(v.id)}" data-g="keys">
+    <div class="r-top"><span class="reg">${esc(v.reg)}</span>${v.keysChecked ? `<span>Checked ${esc(fmtDate(v.keysChecked))}</span>` : ''}</div>
+    <div class="r-main">${num(v.keysCount) != null ? esc(plural(num(v.keysCount), 'key')) : 'No. of keys not set'}${v.spareAt ? ' · spare at ' + esc(v.spareAt) : ''}</div>
+    <div class="r-meta">${esc(join([v.keyCode && 'Code ' + v.keyCode, v.keysNotes]))}</div></div>`).join('')}</div>` : emptyFleet()}</section>`;
+  b += logSection('extras', {heading: true});
+  return {title: SEC.keys.name, sub: SEC.keys.sub, body: b};
+};
+
+function logView(cols, key) {
+  return st => {
+    const vid = st.vid || '';
+    let b = carFilter(vid);
+    if (LOGS[cols[0]].tip) b += tipHTML(LOGS[cols[0]].tip);
+    b += cols.map(c => logSection(c, {vid, heading: cols.length > 1})).join('');
+    return {title: SEC[key].name, sub: SEC[key].sub, body: b};
+  };
+}
+VIEWS.services = logView(['services'], 'services');
+VIEWS.repairs = logView(['repairs'], 'repairs');
+VIEWS.damage = logView(['damage'], 'damage');
+VIEWS.tyres = logView(['tyres', 'batteries'], 'tyres');
+
+function yearsFor(vid) {
+  const y = new Date().getFullYear(); const set = new Set([y, y - 1]);
+  S.monthly.forEach(m => { if (m.vid === vid && num(m.year)) set.add(num(m.year)); });
+  const v = byId('vehicles', vid); const p = v && splitISO(v.dateIn); if (p) for (let k = p[0]; k <= y; k++) set.add(k);
+  return [...set].sort((a, b) => b - a);
+}
+function monthlySection(vid, year) {
+  const doc = byId('monthly', vid + '_' + year); const m = (doc && doc.m) || {};
+  const tot = {}; MF.forEach(([k]) => { tot[k] = 0; }); let gt = 0;
+  const rows = MONTHS.map((name, i) => {
+    const r = m[i + 1] || {}; MF.forEach(([k]) => { tot[k] += num(r[k]) || 0; });
+    const t = COSTF.reduce((s, k) => s + (num(r[k]) || 0), 0); gt += t;
+    const has = MF.some(([k]) => num(r[k]) != null);
+    return `<tr><td><b>${name}</b></td>${MF.map(([k]) => `<td>${esc(n0(r[k]))}</td>`).join('')}<td><b>${has ? esc(n0(t)) : ''}</b></td></tr>`;
+  }).join('');
+  const sel = `<div class="fbar"><label for="yr">Year</label><select id="yr" data-change="year">${yearsFor(vid).map(y => `<option${y === +year ? ' selected' : ''}>${y}</option>`).join('')}</select>${W() ? `<button class="btn pri sm" type="button" data-act="edit-monthly" data-id="${esc(vid)}" data-year="${year}">Fill in ${year}</button>` : ''}</div>`;
+  return `${sel}<div class="tw"><table class="grid"><thead><tr><th>Month</th>${MF.map(([, l]) => `<th>${esc(l)}</th>`).join('')}<th>Total cost (SCR)</th></tr></thead><tbody>${rows}<tr class="tot"><td>Year total</td>${MF.map(([k]) => `<td>${esc(n0(tot[k]))}</td>`).join('')}<td>${esc(n0(gt))}</td></tr></tbody></table></div>`;
+}
+VIEWS.monthly = st => {
+  const vs = vehiclesSorted();
+  if (!vs.length) return {title: SEC.monthly.name, sub: SEC.monthly.sub, body: emptyFleet()};
+  const vid = st.vid && byId('vehicles', st.vid) ? st.vid : (activeVehicles()[0] || vs[0]).id;
+  const year = st.year || new Date().getFullYear();
+  return {title: SEC.monthly.name, sub: SEC.monthly.sub, body: carFilter(vid, false) + monthlySection(vid, year)};
+};
+
+function checkGrid(vid) {
+  const list = S.checks.filter(c => c.vid === vid).sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')) || (a.created || 0) - (b.created || 0)).slice(-8);
+  if (!list.length) return '<div class="empty">No checks for this car yet.</div>';
+  const cell = v => v === 'ok' ? '<td class="c ok">✓</td>' : v === 'fix' ? '<td class="c fix">✗</td>' : '<td class="c"></td>';
+  const head = `<tr><th>Check</th>${list.map(c => `<th style="text-align:center"><button class="thb" type="button" data-act="edit-check" data-id="${esc(c.id)}">${esc(fmtShort(c.date))}</button></th>`).join('')}</tr>`;
+  const body = CHECK.map(([g, items]) => `<tr class="grp"><td colspan="${list.length + 1}">${esc(g)}</td></tr>` + items.map(([k, l]) => `<tr><td class="it">${esc(l)}</td>${list.map(c => cell(c.items && c.items[k])).join('')}</tr>`).join('')).join('');
+  const sig = `<tr class="tot"><td>Checked by</td>${list.map(c => `<td style="text-align:center">${esc(c.initials || '')}</td>`).join('')}</tr>`;
+  return `<div class="tw"><table class="grid"><thead>${head}</thead><tbody>${body}${sig}</tbody></table></div><p class="muted" style="font-size:14px">Tap a date to open that check.</p>`;
+}
+VIEWS.checks = st => {
+  const vs = activeVehicles();
+  if (!vs.length) return {title: SEC.checks.name, sub: SEC.checks.sub, body: emptyFleet()};
+  const vid = st.vid && byId('vehicles', st.vid) ? st.vid : vs[0].id;
+  let b = W() ? `<div class="qa"><button class="btn pri" type="button" data-act="new-check" data-vid="${esc(vid)}">New check for ${esc(vreg(vid))}</button></div>` : '';
+  b += `<section class="card"><h2>Last check per car</h2><div class="list">${vs.map(v => {
+    const cs = S.checks.filter(c => c.vid === v.id).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || (b.created || 0) - (a.created || 0));
+    const last = cs[0]; const fx = last ? CHECK_ITEMS.filter(([k]) => last.items && last.items[k] === 'fix').length : 0;
+    const st2 = !last ? ['mute', 'Not checked'] : fx ? ['over', plural(fx, 'item') + ' to fix'] : ['ok', 'Ready'];
+    return `<div class="row ${st2[0] === 'mute' ? '' : st2[0]}${v.id === vid ? ' sel' : ''}" role="button" tabindex="0" data-act="pick-check" data-id="${esc(v.id)}"><div class="r-top"><span class="reg">${esc(v.reg)}</span>${pill(st2)}</div><div class="r-meta">${last ? esc(join(['Last checked ' + fmtDate(last.date), last.initials && 'by ' + last.initials])) : 'No checks yet'}</div></div>`;
+  }).join('')}</div></section>`;
+  b += `<section class="lsec"><h2>Checks for ${esc(vreg(vid))}</h2>${checkGrid(vid)}</section>`;
+  b += tipHTML('Anything marked ✗ goes in the Repairs & defects log before the car is rented out.');
+  return {title: SEC.checks.name, sub: SEC.checks.sub, body: b};
+};
+
+function hoCard(h, o = {}) {
+  const on = isOnHire(h);
+  const kmd = num(h.in && h.in.odo) != null && num(h.out && h.out.odo) != null ? num(h.in.odo) - num(h.out.odo) : null;
+  const nm = (h.marks || []).filter(m => m.p === 'in').length;
+  const st = on ? ['info', 'On hire'] : (h.in && h.in.dt) ? ['ok', 'Returned'] : ['mute', 'Not handed over'];
+  return `<div class="row ${on ? 'info' : st[0] === 'ok' ? 'ok' : ''}" role="button" tabindex="0" data-act="open-ho" data-id="${esc(h.id)}">
+    <div class="r-top">${h.reportNo ? `<span class="no">Report ${esc(h.reportNo)}</span>` : ''}${o.fixed ? '' : `<span class="reg">${esc(vreg(h.vid))}</span>`}${pill(st)}${nm ? pill(['over', plural(nm, 'new damage mark')]) : ''}${h.photos && h.photos.length ? pill(['mute', plural(h.photos.length, 'photo')]) : ''}</div>
+    <div class="r-main">${esc(h.customer || 'Customer')}</div>
+    <div class="r-meta">${esc(join([h.out && h.out.dt && 'Out ' + fmtDT(h.out.dt), h.in && h.in.dt && 'Back ' + fmtDT(h.in.dt), kmd != null && fmtKm(kmd)]))}</div>
+    ${on && W() ? `<div class="r-act"><button class="btn sm dark" type="button" data-act="return-ho" data-id="${esc(h.id)}">Record return</button></div>` : ''}
+  </div>`;
+}
+const hoSorted = list => [...list].sort((a, b) => String((b.out && b.out.dt) || '').localeCompare(String((a.out && a.out.dt) || '')) || (b.created || 0) - (a.created || 0));
+VIEWS.rentals = st => {
+  const f = st.f || 'all';
+  const all = hoSorted(S.handovers);
+  const on = all.filter(isOnHire), ret = all.filter(h => h.in && h.in.dt);
+  const list = f === 'on' ? on : f === 'back' ? ret : all;
+  let b = W() ? '<div class="qa"><button class="btn pri" type="button" data-act="new-ho">New handover</button></div>' : '';
+  b += `<div class="chips" role="group" aria-label="Show">${[['all', 'All', all.length], ['on', 'On hire', on.length], ['back', 'Returned', ret.length]].map(([k, l, n]) => `<button type="button" data-act="ho-filter" data-f="${k}" aria-pressed="${f === k}">${l} (${n})</button>`).join('')}</div>`;
+  b += list.length ? `<div class="list">${list.map(h => hoCard(h)).join('')}</div>` : `<div class="empty">${f === 'on' ? 'No cars on hire right now.' : 'No handover reports yet.'}</div>`;
+  return {title: SEC.rentals.name, sub: SEC.rentals.sub, body: b};
+};
+
+function cardText(vid) {
+  const co = S.company || {};
+  return `IN CASE OF BREAKDOWN OR ACCIDENT\nCar hire company: ${co.name || '—'}\n24h phone: ${co.phone24 || co.phone || '—'}\nVehicle reg. no.: ${vid ? vreg(vid) : '—'}\n1. Stop safely and switch on the hazard lights.\n2. Call us before anyone repairs or tows the car.\n3. Take photos. If anyone is hurt, call emergency services first.`;
+}
+VIEWS.breakdown = st => {
+  const vs = activeVehicles(); const co = S.company || {};
+  const vid = st.vid && byId('vehicles', st.vid) ? st.vid : (vs[0] && vs[0].id) || '';
+  const phone = co.phone24 || co.phone || '';
+  let b = `<div class="cols2"><section class="card"><h2>Breakdown</h2><ol class="steps">
+    <li>Stop somewhere safe and switch on the hazard lights.</li>
+    <li>Get everyone out of the car and away from traffic if it is not safe to stay inside.</li>
+    <li>Call the car hire company on the number on the card. Do not let anyone else repair or tow the car without the company's OK.</li>
+    <li>Note the location, the odometer reading and any warning lights.</li>
+    <li>Staff: record the fault in the Repairs &amp; defects log.</li></ol></section>
+    <section class="card"><h2>Accident</h2><ol class="steps">
+    <li>Stop, switch on the hazard lights and check that everyone is safe.</li>
+    <li>If anyone is hurt, call the emergency services first.</li>
+    <li>Take photos of all vehicles, number plates, the road and any damage.</li>
+    <li>Swap names, phone numbers, licence and insurance details with the other driver.</li>
+    <li>Call the car hire company and follow the police and insurance instructions you are given.</li>
+    <li>Staff: record it in the Damage &amp; incident log and keep the handover report.</li></ol></section></div>`;
+  b += `<section class="lsec"><h2>Glovebox card</h2>${vs.length ? carFilter(vid, false) : ''}
+    <div class="ecard" style="margin-top:10px"><div class="et">IN CASE OF BREAKDOWN OR ACCIDENT</div>
+    <div class="kv"><span>Car hire company</span><b>${co.name ? esc(co.name) : '<span class="na">Add in company details</span>'}</b></div>
+    <div class="kv"><span>24h phone</span><b>${phone ? esc(phone) : '<span class="na">Add in company details</span>'}</b></div>
+    <div class="kv"><span>Vehicle reg. no.</span><b>${vid ? esc(vreg(vid)) : '<span class="na">—</span>'}</b></div>
+    <ol><li>Stop safely and switch on the hazard lights.</li><li>Call us before anyone repairs or tows the car.</li><li>Take photos. If anyone is hurt, call emergency services first.</li></ol></div>
+    <div class="qa" style="margin-top:10px"><button class="btn dark sm" type="button" data-act="copy-card" data-id="${esc(vid)}">Copy card for WhatsApp</button>${W() ? '<button class="btn sm" type="button" data-act="edit-company">Company details</button>' : ''}</div>
+    <textarea id="cardTxt" class="sr" readonly aria-hidden="true" tabindex="-1">${esc(cardText(vid))}</textarea></section>`;
+  return {title: SEC.breakdown.name, sub: SEC.breakdown.sub, body: b};
+};
+
+VIEWS.car = st => {
+  const v = byId('vehicles', st.id);
+  if (!v) return {title: 'Car not found', sub: '', body: '<div class="empty">This car is no longer in the Fleet register.</div>'};
+  const tab = st.tab || 'profile';
+  const s = vStatus(v); const odo = latestOdo(v.id); const h = openHire(v.id); const al = alertsFor(v);
+  let b = `<section class="card"><div class="vsum"><span class="reg" style="font-size:22px">${esc(v.reg || 'No reg.')}</span>${pill(s)}${odo != null ? `<span><span class="muted">Last odometer</span> <span class="big">${esc(fmtKm(odo))}</span></span>` : ''}</div>
+    ${h ? `<p style="margin-top:8px">On hire to <b>${esc(h.customer || 'customer')}</b> since ${esc(fmtDT(h.out.dt))}.</p>` : ''}
+    ${al.length ? `<div class="list" style="margin-top:10px">${al.map(a => `<div class="row ${a.lvl}" style="cursor:default"><div class="r-main">${esc(a.text)}</div><div class="r-meta">${esc(a.when)}</div></div>`).join('')}</div>` : ''}
+    <div class="qa" style="margin-top:12px">${W() ? `<button class="btn pri sm" type="button" data-act="${h ? 'return-ho' : 'new-ho'}" data-id="${h ? esc(h.id) : ''}" data-vid="${esc(v.id)}">${h ? 'Record return' : 'New handover'}</button><button class="btn sm" type="button" data-act="new-check" data-vid="${esc(v.id)}">Vehicle-ready check</button>` : ''}<button class="btn sm" type="button" data-act="go" data-v="breakdown" data-vid="${esc(v.id)}">Glovebox card</button></div></section>`;
+  const TABS2 = [['profile','Profile'],['services','Service'],['repairs','Repairs'],['damage','Damage'],['tyres','Tyres & battery'],['monthly','Monthly'],['checks','Checks'],['rentals','Rentals']];
+  b += `<div class="tabs2" role="tablist">${TABS2.map(([k, l]) => `<button type="button" role="tab" data-act="car-tab" data-tab="${k}" aria-selected="${k === tab}">${esc(l)}</button>`).join('')}</div>`;
+  if (tab === 'profile') {
+    b += Object.entries(VGROUPS).map(([g, grp]) => `<section class="card"><div class="ch"><h2>${esc(grp.name)}</h2>${W() ? `<button class="btn sm" type="button" data-act="edit-veh" data-id="${esc(v.id)}" data-g="${g}">Edit</button>` : ''}</div>${dlHTML(grp.f, v)}</section>`).join('');
+  } else if (tab === 'tyres') {
+    b += logSection('tyres', {vid: v.id, fixed: true, heading: true}) + logSection('batteries', {vid: v.id, fixed: true, heading: true});
+  } else if (tab === 'monthly') {
+    b += monthlySection(v.id, st.year || new Date().getFullYear());
+  } else if (tab === 'checks') {
+    b += (W() ? `<div class="qa"><button class="btn pri sm" type="button" data-act="new-check" data-vid="${esc(v.id)}">New check</button></div>` : '') + checkGrid(v.id);
+  } else if (tab === 'rentals') {
+    const list = hoSorted(S.handovers.filter(x => x.vid === v.id));
+    b += list.length ? `<div class="list">${list.map(x => hoCard(x, {fixed: true})).join('')}</div>` : '<div class="empty">No handover reports for this car yet.</div>';
+  } else {
+    if (LOGS[tab].tip) b += tipHTML(LOGS[tab].tip);
+    b += logSection(tab, {vid: v.id, fixed: true});
+  }
+  return {title: v.reg || 'Vehicle file', sub: join([v.make, v.year]) || 'Vehicle file', body: b};
+};
+
+/* ---------------- photos ---------------- */
+const canUpload = () => W();
+async function photoBlob(id) { if (MEMPH[id]) return MEMPH[id]; if (!IDB) return null; try { return await idbGet('photos', id); } catch (e) { return null; } }
+async function urlFor(id) { if (URLS[id]) return URLS[id]; const b = await photoBlob(id); if (!b) return ''; URLS[id] = URL.createObjectURL(b); return URLS[id]; }
+function hydratePhotos(root) {
+  $$('img[data-photo]', root).forEach(img => {
+    if (img.getAttribute('src')) return;
+    urlFor(img.dataset.photo).then(u => { if (u) img.src = u; else { const p = img.closest('.ph'); if (p) p.classList.add('broken'); } });
+  });
+}
+const curReg = () => { const el = $('#shBody [data-k="vid"]'); const v = el && byId('vehicles', el.value); return v ? v.reg : ''; };
+function assetErr(e) {
+  const c = e && e.code;
+  if (c === 'too_large') return 'That photo is too big to upload.';
+  if (c === 'unsupported_type') return "That file can't be used. Choose a JPG or PNG photo.";
+  if (c === 'quota_or_state') return 'Photo storage for this logbook is full. Delete old photos to make room.';
+  if (c === 'rate_limited') return 'Too many photos at once. Wait a moment, then try again.';
+  if (c === 'upstream_auth') return 'Reload the page or sign in again, then try again.';
+  if (c === 'not_granted' || c === 'capability_disabled' || c === 'capability_removed') return "Photos can't be added in this view.";
+  return "The photo couldn't be uploaded. Check your connection and try again.";
+}
+const localStamp = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+function photoTime(f) { const lm = f && f.lastModified, now = Date.now(); return localStamp(lm && lm <= now + 60000 && lm > now - 1000 * DAY ? new Date(lm) : new Date()); }
+async function decodeImage(file) {
+  if (window.createImageBitmap) { try { return await createImageBitmap(file); } catch (e) { /* try an <img> instead */ } }
+  const url = URL.createObjectURL(file);
+  try { return await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; }); }
+  catch (e) { return null; }
+  finally { setTimeout(() => URL.revokeObjectURL(url), 2000); }
+}
+async function preparePhoto(file, stamp) {
+  const img = await decodeImage(file);
+  if (!img) { if (/^image\/(jpeg|png|webp|gif)$/.test(file.type)) return file; throw new Error("This photo can't be read. Choose a JPG or PNG photo."); }
+  const w0 = img.width || img.naturalWidth, h0 = img.height || img.naturalHeight;
+  const sc = Math.min(1, 1600 / Math.max(w0, h0));
+  const w = Math.max(1, Math.round(w0 * sc)), h = Math.max(1, Math.round(h0 * sc));
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h);
+  if (img.close) img.close();
+  if (stamp) {
+    let fs = Math.max(14, Math.round(Math.min(w, h) / 24));
+    const font = () => { x.font = `700 ${fs}px Barlow, Arial, sans-serif`; return x.measureText(stamp).width; };
+    let tw = font();
+    if (tw > w * 0.94) { fs = Math.max(9, Math.floor(fs * w * 0.94 / tw)); tw = font(); }
+    const pad = Math.round(fs * 0.55), bh = fs + pad * 2;
+    x.fillStyle = 'rgba(43,48,54,.85)'; x.fillRect(w - tw - pad * 2, h - bh, tw + pad * 2, bh);
+    x.fillStyle = '#FFD400'; x.textBaseline = 'middle'; x.fillText(stamp, w - tw - pad, h - bh / 2);
+  }
+  return await new Promise((res, rej) => c.toBlob(b => (b ? res(b) : rej(new Error("Couldn't prepare the photo."))), 'image/jpeg', 0.82));
+}
+async function uploadPhoto(file, stamp) {
+  const blob = await preparePhoto(file, stamp);
+  const id = 'ph' + newId();
+  if (IDB) { try { await idbPut('photos', id, blob); } catch (e) { throw new Error(saveErr(e)); } askPersist(); }
+  else MEMPH[id] = blob;
+  URLS[id] = URL.createObjectURL(blob);
+  return id;
+}
+function photoManager(initial, labels, stamp) {
+  return {list: (initial || []).map(x => Object.assign({}, x)), labels, stamp, added: new Set(), removed: new Set(), pending: 0, saved: false, closed: false,
+    clean() { return this.list.filter(x => !x.tmp).map(x => ({id: x.id, t: x.t || '', p: x.p})); }};
+}
+const usedElsewhere = (id, col, rid) => ['handovers', 'damage'].some(c => S[c].some(r => !(c === col && r.id === rid) && (r.photos || []).some(p => p.id === id)));
+async function dropAsset(id) { if (!id) return; try { if (IDB) await idbDel('photos', id); } catch (e) { /* only space is affected */ } delete MEMPH[id]; if (URLS[id]) { URL.revokeObjectURL(URLS[id]); delete URLS[id]; } }
+async function commitPhotos(pm, col, rid) {
+  pm.saved = true; const ids = [...pm.removed]; pm.removed.clear(); pm.added.clear();
+  for (const id of ids) if (!usedElsewhere(id, col, rid)) await dropAsset(id);
+}
+function discardPhotos(pm) {
+  pm.closed = true; if (pm.saved) return;
+  const ids = [...pm.added]; pm.added.clear();
+  ids.forEach(id => { if (!usedElsewhere(id)) dropAsset(id); });
+}
+async function purgePhotos(photos, col, rid) { for (const p of photos || []) if (!usedElsewhere(p.id, col, rid)) await dropAsset(p.id); }
+function thumbsHTML(pm, g) {
+  const items = pm.list.filter(x => x.p === g);
+  if (!items.length) return '<p class="muted phnone">No photos yet.</p>';
+  return items.map(x => x.tmp ? '<div class="phw"><div class="ph busy">Uploading…</div></div>'
+    : `<div class="phw"><button type="button" class="ph" data-act="ph-view" data-pid="${esc(x.id)}"><img data-photo="${esc(x.id)}"${URLS[x.id] ? ` src="${esc(URLS[x.id])}"` : ''} alt="${esc(pm.labels[g] + ' photo' + (x.t ? ', ' + fmtDT(x.t) : ''))}" loading="lazy"></button>${canUpload() ? `<button type="button" class="ph-x" data-act="ph-rm" data-pid="${esc(x.id)}" aria-label="Remove this photo">×</button>` : ''}</div>`).join('');
+}
+function photoSection(pm) {
+  const cam = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+  const ctl = g => canUpload() ? `<div class="qa"><label class="btn sm dark">${cam}Take photo<input type="file" accept="image/*" capture="environment" data-up="${g}" class="sr"></label><label class="btn sm">Choose photos<input type="file" accept="image/*" multiple data-up="${g}" class="sr"></label></div>` : '';
+  const note = '';
+  return Object.entries(pm.labels).map(([g, l]) => `<div class="phg"><h3>${esc(l)} photos</h3><div class="phgrid" data-pg="${g}">${thumbsHTML(pm, g)}</div>${ctl(g)}</div>`).join('') + note;
+}
+function refreshPhotos(pm) {
+  if (!pm || sheet.pm !== pm) return;
+  $$('#shBody .phgrid[data-pg]').forEach(el => { el.innerHTML = thumbsHTML(pm, el.dataset.pg); });
+  hydratePhotos($('#shBody'));
+}
+async function addPhotos(pm, files, g) {
+  for (const f of files) {
+    if (pm.closed) return;
+    const tmp = {id: 'tmp' + Math.random().toString(36).slice(2), p: g, tmp: true};
+    pm.list.push(tmp); pm.pending++; refreshPhotos(pm);
+    try {
+      const t = photoTime(f);
+      const id = await uploadPhoto(f, pm.stamp(g, t));
+      if (pm.closed) { dropAsset(id); continue; }
+      tmp.id = id; tmp.t = t; delete tmp.tmp; pm.added.add(id);
+    } catch (e) {
+      const i = pm.list.indexOf(tmp); if (i >= 0) pm.list.splice(i, 1);
+      if (!pm.closed) toast(e.message || "The photo couldn't be uploaded.", true);
+    } finally { pm.pending--; refreshPhotos(pm); }
+  }
+}
+const lb = {items: [], i: 0};
+function lbShow() {
+  const it = lb.items[lb.i]; if (!it) return;
+  $('#lbImg').removeAttribute('src'); urlFor(it.id).then(u => { if (u && lb.items[lb.i] === it) $('#lbImg').src = u; }); $('#lbImg').alt = it.cap; $('#lbCap').textContent = it.cap;
+  $('#lbN').textContent = `${lb.i + 1} of ${lb.items.length}`;
+  $('#lbPrev').disabled = lb.i === 0; $('#lbNext').disabled = lb.i === lb.items.length - 1;
+}
+function lbOpen(pid) {
+  const pm = sheet.pm; if (!pm) return;
+  lb.items = pm.clean().map(x => ({id: x.id, cap: join([pm.labels[x.p], fmtDT(x.t)])}));
+  lb.i = Math.max(0, lb.items.findIndex(x => x.id === pid));
+  $('#lb').hidden = false; lbShow(); $('#lb button[data-act="lb-close"]').focus();
+}
+function lbClose() { const el = $('#lb'); if (!el || el.hidden) return; el.hidden = true; $('#lbImg').removeAttribute('src'); }
+
+/* ---------------- backup, restore, install ---------------- */
+let BK = null, RS = null, installEvt = null;
+const slug = s => String(s || 'Logbook').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'Logbook';
+const photoIds = () => { const ids = new Set(); ['handovers', 'damage'].forEach(c => S[c].forEach(r => (r.photos || []).forEach(p => ids.add(p.id)))); return ids; };
+const recCount = () => COLS.reduce((n, c) => n + S[c].length, 0);
+const fmtSize = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+function sinceText(iso) { if (!iso) return 'never'; const n = -daysUntil(iso); return n <= 0 ? 'today' : n === 1 ? 'yesterday' : plural(n, 'day') + ' ago'; }
+const backupStale = () => !META.lastBackup || -daysUntil(META.lastBackup) >= 7;
+const isStandalone = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } };
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function backupCard() {
+  if (!recCount() && !S.company.name) return '';
+  const stale = backupStale();
+  return `<section class="card bkc${stale ? ' stale' : ''}"><div class="ch"><h2>Backup</h2><button class="btn sm${stale ? ' pri' : ''}" type="button" data-act="go" data-v="backup">Back up now</button></div><p>Last backup: <b>${esc(sinceText(META.lastBackup))}</b>. Your records are only on this phone, so back up every week in case the phone is lost.</p></section>`;
+}
+function installCard() {
+  if (isStandalone() || META.installHide || MODE === 'connecting') return '';
+  const hide = label => `<button class="btn sm" type="button" data-act="install-hide">${label}</button>`;
+  const how = installEvt ? `<p>Install the logbook so it opens like an app and works without internet.</p><div class="qa"><button class="btn pri" type="button" data-act="install">Install app</button>${hide('Not now')}</div>`
+    : isIOS() ? `<p>In Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>. From then on, open the logbook from your Home Screen: Safari can clear saved records for websites that aren’t opened for a week.</p><div class="qa">${hide('Done')}</div>`
+    : `<p>In Chrome, tap <b>⋮</b>, then <b>Install app</b> or <b>Add to Home screen</b>. Then open the logbook from your home screen.</p><div class="qa">${hide('Done')}</div>`;
+  return `<section class="card inst"><h2>Install on this phone</h2>${how}</section>`;
+}
+const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
+function dataURLToBlob(u) {
+  const m = /^data:([^;,]+)?(;base64)?,([\s\S]*)$/.exec(u || ''); if (!m) return null;
+  try { const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]); const a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], {type: m[1] || 'image/jpeg'}); } catch (e) { return null; }
+}
+async function makeBackup(withPhotos) {
+  const docs = [{col: 'company', id: 'profile', data: S.company || {}}];
+  COLS.forEach(c => S[c].forEach(r => { const d = Object.assign({}, r); delete d.id; docs.push({col: c, id: r.id, data: d}); }));
+  const photos = {};
+  if (withPhotos) for (const id of photoIds()) { const b = await photoBlob(id); if (b) photos[id] = await blobToDataURL(b); }
+  const out = {app: 'car-hire-fleet-logbook', version: 1, exported: localStamp(new Date()), company: S.company.name || '', docs, photos};
+  const file = new File([JSON.stringify(out)], `Fleet-Logbook-Backup-${slug(S.company.name)}-${todayISO()}.json`, {type: 'application/json'});
+  if (BK && BK.url) URL.revokeObjectURL(BK.url);
+  BK = {file, url: URL.createObjectURL(file), photos: withPhotos};
+}
+function shareBackup() {
+  if (!BK) return;
+  const f = BK.file;
+  const mark = msg => { toast(msg); setMeta('lastBackup', localStamp(new Date())).then(render); };
+  const download = () => { const a = document.createElement('a'); a.href = BK.url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); mark('Backup file saved. Keep it somewhere safe.'); };
+  let canShareFile = false;
+  try { canShareFile = !!(navigator.canShare && navigator.canShare({files: [f]})); } catch (e) { canShareFile = false; }
+  if (!canShareFile) { download(); return; }
+  navigator.share({files: [f], title: 'Fleet logbook backup'}).then(() => mark('Backup sent')).catch(e => { if (!e || e.name !== 'AbortError') download(); });
+}
+async function readBackup(file) {
+  let d = null; try { d = JSON.parse(await file.text()); } catch (e) { d = null; }
+  if (!d || d.app !== 'car-hire-fleet-logbook' || !Array.isArray(d.docs)) throw new Error('This file isn’t a fleet logbook backup.');
+  return d;
+}
+async function restoreBackup(d) {
+  if (!IDB) throw new Error('This browser can’t save records, so the backup can’t be restored here.');
+  const docs = d.docs.filter(x => x && typeof x.col === 'string' && typeof x.id === 'string' && x.id && !x.id.includes('/') && (x.col === 'company' || COLS.includes(x.col)) && x.data && typeof x.data === 'object');
+  const blobs = Object.entries(d.photos || {}).map(([id, u]) => [id, dataURLToBlob(u)]).filter(x => x[1]);
+  const t = IDB.transaction(['docs', 'photos'], 'readwrite');
+  const ds = t.objectStore('docs'), ps = t.objectStore('photos');
+  ds.clear(); ps.clear();
+  docs.forEach(x => ds.put(x.data, x.col + '/' + x.id));
+  blobs.forEach(([id, b]) => ps.put(b, id));
+  try { await done(t); } catch (e) { throw new Error(saveErr(e)); }
+  Object.keys(URLS).forEach(k => { URL.revokeObjectURL(URLS[k]); delete URLS[k]; });
+  await loadAll(); askPersist();
+  RS = null; if (BK && BK.url) URL.revokeObjectURL(BK.url); BK = null;
+}
+async function showSpace() { const el = $('#bkSpace'); if (!el) return; try { const e = await navigator.storage.estimate(); el.textContent = fmtSize(e.usage || 0); } catch (x) { el.textContent = '—'; } }
+VIEWS.backup = () => {
+  const nPh = photoIds().size;
+  let b = `<section class="card"><h2>Your records</h2><dl class="dl">
+    <div><dt>Cars</dt><dd>${S.vehicles.length}</dd></div><div><dt>Entries</dt><dd>${esc(nf.format(recCount() - S.vehicles.length))}</dd></div><div><dt>Photos</dt><dd>${nPh}</dd></div>
+    <div><dt>Last backup</dt><dd>${esc(META.lastBackup ? fmtDT(META.lastBackup) : 'Never')}</dd></div><div><dt>Space used</dt><dd id="bkSpace">…</dd></div></dl>
+    <p class="muted" style="margin-top:10px">Records are saved on this phone only. Nobody else can see them, and they don’t move to a new phone by themselves.</p></section>`;
+  b += `<section class="card"><h2>Back up</h2><p style="margin-bottom:10px">Make a backup file and keep it somewhere safe: send it to yourself on WhatsApp, or save it to Google Drive or iCloud. Do it every week.</p>
+    <label class="chk" for="bkPh"><input type="checkbox" id="bkPh"${BK && !BK.photos ? '' : ' checked'}><span>Include photos (bigger file)</span></label>
+    <div class="qa" style="margin-top:6px">${BK ? `<button class="btn pri" type="button" data-act="bk-share">Save or send backup (${esc(fmtSize(BK.file.size))})</button><button class="btn sm" type="button" data-act="bk-make">Make it again</button>` : `<button class="btn pri" type="button" data-act="bk-make"${recCount() || S.company.name ? '' : ' disabled'}>Make backup file</button>`}</div>${BK ? `<p class="hint" style="margin-top:6px">${esc(BK.file.name)}</p>` : ''}</section>`;
+  b += `<section class="card"><h2>Restore</h2><p>New phone? Open the logbook on it, then choose your latest backup file here. Everything on this phone is replaced by what’s in the backup.</p>
+    ${RS ? `<div class="banner warn" style="margin-top:10px">Backup from <b>${esc(fmtDT(RS.exported) || 'an unknown date')}</b>${RS.company ? ` for <b>${esc(RS.company)}</b>` : ''}: ${esc(plural(RS.cars, 'car'))}, ${esc(plural(RS.entries, 'entry', 'entries'))}, ${esc(plural(RS.photos, 'photo'))}.</div>
+      <div class="qa" style="margin-top:10px">${W() ? '<button class="btn danger" type="button" data-act="bk-restore">Replace everything with this backup</button>' : ''}<button class="btn sm" type="button" data-act="bk-cancel">Cancel</button></div>`
+    : `<div class="qa" style="margin-top:10px"><label class="btn">Choose backup file<input type="file" accept=".json,application/json" data-restore="1" class="sr"></label></div>`}</section>`;
+  setTimeout(showSpace, 0);
+  return {title: 'Backup & restore', sub: 'Keep a copy of your records off this phone.', body: b};
+};
+
+/* ---------------- editors ---------------- */
+function editCompany() {
+  const co = S.company || {};
+  openSheet({title: 'Company details', html: `<p class="muted">This logbook belongs to:</p>${formHTML(COMPANY, co, {isNew: !co.name})}`,
+    save: async body => { const d = readForm(body); await putDoc('company', 'profile', d); }});
+}
+function editVehicle(id, g = 'reg') {
+  const v = id ? byId('vehicles', id) : null;
+  if (id && !v) return;
+  const grp = VGROUPS[g];
+  const rec = v || {no: nextNo()};
+  let html = '';
+  if (g === 'reg') html += `<p class="muted">Sold a car? Fill in “Date out / sold” instead of deleting it, so its history stays in the logbook.</p>`;
+  html += formHTML(grp.f, rec, {isNew: !v || g === 'ren' && !v.checkedDate || g === 'keys' && !v.keysChecked});
+  openSheet({title: v ? `${grp.name} · ${v.reg || ''}` : 'Add a car', html,
+    save: async body => {
+      const d = readForm(body);
+      validate(grp.f, d, body);
+      if (d.reg !== undefined) {
+        d.reg = d.reg.toUpperCase();
+        if (S.vehicles.some(x => x.id !== id && String(x.reg || '').replace(/\s/g, '').toUpperCase() === d.reg.replace(/\s/g, ''))) throw new Error('Another car already has this reg. no.');
+      }
+      if (v) await mergeDoc('vehicles', id, d);
+      else { const nid = newId('vehicles'); d.created = Date.now(); await putDoc('vehicles', nid, d); setTimeout(() => go('car', {id: nid}), 0); }
+    },
+    del: v && g === 'reg' ? async () => { await delDoc('vehicles', id); if (top().v === 'car' && top().id === id) back(); } : null});
+}
+function editLog(col, id, prefill) {
+  const d = LOGS[col]; const rec = id ? byId(col, id) : Object.assign({}, prefill || {});
+  if (id && !rec) return;
+  const pm = d.photos ? photoManager(rec.photos, {dmg: 'Damage'}, (g, t) => join([fmtDT(t), curReg(), 'Damage'])) : null;
+  openSheet({title: (id ? 'Edit ' : 'New ') + d.one + (rec.vid ? ' · ' + vreg(rec.vid) : ''), html: (d.tip ? tipHTML(d.tip) : '') + formHTML(d.fields, rec, {isNew: !id}) + (pm ? `<section class="sgrp"><h2>Photos</h2>${photoSection(pm)}</section>` : ''),
+    save: async body => {
+      const data = readForm(body); validate(d.fields, data, body);
+      if (pm) { if (pm.pending) throw new Error('Wait for the photos to finish uploading.'); data.photos = pm.clean(); }
+      data.created = rec.created || Date.now();
+      const rid = id || newId(col);
+      await putDoc(col, rid, data);
+      if (pm) await commitPhotos(pm, col, rid);
+      if (col === 'services' && (data.nextKm != null || data.nextDate)) {
+        const v = byId('vehicles', data.vid);
+        const newer = S.services.some(s => s.id !== id && s.vid === data.vid && String(s.date || '') > String(data.date || ''));
+        if (v && !newer) { const up = {}; if (data.nextKm != null) up.nextSvcKm = data.nextKm; if (data.nextDate) up.nextSvcDate = data.nextDate; await mergeDoc('vehicles', v.id, up); }
+      }
+    },
+    del: id ? async () => { await delDoc(col, id); if (pm) await purgePhotos(rec.photos, col, id); } : null});
+  sheet.pm = pm;
+}
+function editMonthly(vid, year) {
+  const doc = byId('monthly', vid + '_' + year); const m = clone(doc && doc.m);
+  const rows = MONTHS.map((name, i) => `<tr data-m="${i + 1}"><td><b>${name}</b></td>${MF.map(([k, l]) => `<td><input type="number" inputmode="decimal" step="any" min="0" data-mf="${k}" aria-label="${esc(name + ' ' + l)}" value="${esc(num((m[i + 1] || {})[k]) ?? '')}"></td>`).join('')}<td class="mt"></td></tr>`).join('');
+  const html = `<p>Days on hire and costs for <b>${esc(vreg(vid))}</b> in <b>${year}</b>. Total cost adds up service, repairs, tyres / battery and other.</p>
+    <div class="qa"><button class="btn dark sm" type="button" data-act="mfill" data-id="${esc(vid)}" data-year="${year}">Fill from logs</button></div>
+    <p class="muted" id="mNote" style="font-size:14px">Fill from logs uses your service, repair, tyre, battery and handover entries. You can change any number before saving.</p>
+    <div class="tw"><table class="grid" id="mTable"><thead><tr><th>Month</th>${MF.map(([, l]) => `<th>${esc(l)}</th>`).join('')}<th>Total cost (SCR)</th></tr></thead><tbody>${rows}<tr class="tot"><td>Year total</td>${MF.map(([k]) => `<td data-tf="${k}"></td>`).join('')}<td data-tf="all"></td></tr></tbody></table></div>`;
+  openSheet({title: `Monthly summary · ${vreg(vid)} · ${year}`, html, after: body => { monthlyTotals(body); },
+    save: async body => {
+      const out = {};
+      $$('tr[data-m]', body).forEach(tr => {
+        const r = {}; $$('input[data-mf]', tr).forEach(inp => { if (inp.value !== '') r[inp.dataset.mf] = Number(inp.value); });
+        if (Object.keys(r).length) out[tr.dataset.m] = r;
+      });
+      await putDoc('monthly', vid + '_' + year, {vid, year: Number(year), m: out});
+    }});
+}
+function monthlyTotals(body) {
+  const tot = {}; let gt = 0; MF.forEach(([k]) => { tot[k] = 0; });
+  $$('tr[data-m]', body).forEach(tr => {
+    let t = 0, has = false;
+    $$('input[data-mf]', tr).forEach(inp => { const x = num(inp.value); if (x != null) { has = true; tot[inp.dataset.mf] += x; if (COSTF.includes(inp.dataset.mf)) t += x; } });
+    gt += t; tr.querySelector('.mt').textContent = has ? n0(t) : '';
+  });
+  MF.forEach(([k]) => { body.querySelector(`[data-tf="${k}"]`).textContent = n0(tot[k]); });
+  body.querySelector('[data-tf="all"]').textContent = n0(gt);
+}
+function fromLogs(vid, year) {
+  const res = Array.from({length: 12}, () => ({daysRented: 0, daysOff: 0, km: 0, service: 0, repairs: 0, tyres: 0}));
+  const Y = +year;
+  const at = iso => { const p = splitISO(iso); return p && p[0] === Y ? p[1] - 1 : -1; };
+  S.services.forEach(r => { if (r.vid !== vid) return; const i = at(r.date); if (i >= 0) res[i].service += num(r.cost) || 0; });
+  S.repairs.forEach(r => { if (r.vid !== vid) return; const i = at(r.dateFixed || r.dateReported); if (i >= 0) res[i].repairs += num(r.cost) || 0; const j = at(r.dateReported); if (j >= 0) res[j].daysOff += num(r.daysOff) || 0; });
+  S.tyres.forEach(r => { if (r.vid !== vid) return; const i = at(r.date); if (i >= 0) res[i].tyres += num(r.cost) || 0; });
+  S.batteries.forEach(r => { if (r.vid !== vid) return; const i = at(r.dateFitted); if (i >= 0) res[i].tyres += num(r.cost) || 0; });
+  S.handovers.forEach(h => {
+    if (h.vid !== vid || !h.out || !h.out.dt) return;
+    const s = new Date(h.out.dt), e = h.in && h.in.dt ? new Date(h.in.dt) : new Date();
+    if (isNaN(s) || isNaN(e) || e < s) return;
+    const n = Math.max(1, Math.ceil((e - s) / DAY - 2 / 24));
+    for (let k = 0; k < n; k++) { const d = new Date(s.getFullYear(), s.getMonth(), s.getDate() + k); if (d.getFullYear() === Y) res[d.getMonth()].daysRented++; }
+    if (h.in && h.in.dt) { const i = at(h.in.dt), a = num(h.out.odo), z = num(h.in.odo); if (i >= 0 && a != null && z != null && z > a) res[i].km += z - a; }
+  });
+  return res;
+}
+function editCheck(id, vid) {
+  const rec = id ? clone(byId('checks', id)) : {vid: vid || ((activeVehicles()[0] || {}).id) || '', date: todayISO(), items: {}};
+  if (id && !rec.id) return;
+  const groups = CHECK.map(([g, items]) => `<div class="ckg"><h3>${esc(g)}</h3>${items.map(([k, l]) => { const v = (rec.items || {})[k] || ''; return `<div class="ck"><span id="ck_${k}">${esc(l)}</span><div class="seg ckseg" role="group" aria-labelledby="ck_${k}" data-k="items.${k}" data-seg data-v="${v}"><button type="button" data-sv="ok" aria-pressed="${v === 'ok'}">✓ OK</button><button type="button" data-sv="fix" aria-pressed="${v === 'fix'}">✗ Fix first</button></div></div>`; }).join('')}</div>`).join('');
+  const html = formHTML([VSEL, T('date', 'Date', 'date')], rec) + `<div class="qa"><button class="btn sm" type="button" data-act="ck-all">Mark all OK</button></div>` + groups +
+    formHTML([T('initials', 'Checked by (initials)', 'text', {req: 1})], rec) +
+    (id ? '' : '<label class="chk" for="ckFix"><input type="checkbox" id="ckFix" checked><span>Add ✗ items to the Repairs &amp; defects log</span></label>') +
+    tipHTML('Anything marked ✗ goes in the Repairs & defects log before the car is rented out.');
+  openSheet({title: id ? 'Vehicle-ready check' : 'New vehicle-ready check', html,
+    save: async body => {
+      const d = readForm(body); validate([VSEL, T('initials', 'Checked by (initials)', 'text', {req: 1})], d, body);
+      const items = {}; Object.entries(d.items || {}).forEach(([k, v]) => { if (v) items[k] = v; });
+      const addFix = !id && $('#ckFix', body) && $('#ckFix', body).checked;
+      const data = {vid: d.vid, date: d.date || todayISO(), initials: d.initials, items, created: rec.created || Date.now()};
+      await putDoc('checks', id || newId('checks'), data);
+      if (addFix) {
+        const fixes = CHECK_ITEMS.filter(([k]) => items[k] === 'fix');
+        for (const [, l] of fixes) await putDoc('repairs', newId('repairs'), {vid: d.vid, dateReported: data.date, reportedBy: 'Vehicle-ready check (' + d.initials + ')', defect: l, action: '', dateFixed: '', daysOff: null, cost: null, initials: d.initials, created: Date.now()});
+        if (fixes.length) setTimeout(() => toast(plural(fixes.length, 'item') + ' added to the Repairs & defects log'), 300);
+      }
+    },
+    del: id ? async () => { await delDoc('checks', id); } : null});
+}
+
+/* signature pads */
+function makePad(canvas, initial) {
+  const ctx = canvas.getContext('2d'); const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || 300, h = canvas.clientHeight || 90;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  ctx.scale(dpr, dpr); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 2.4; ctx.strokeStyle = '#1B1F23';
+  let strokes = []; let cur = null; let pts = 0;
+  const fx = x => x / w * 1000, fy = y => y / h * 300, tx = x => x / 1000 * w, ty = y => y / 300 * h;
+  function draw() { ctx.clearRect(0, 0, w, h); strokes.forEach(s => { ctx.beginPath(); s.forEach((p, i) => { i ? ctx.lineTo(tx(p[0]), ty(p[1])) : ctx.moveTo(tx(p[0]), ty(p[1])); }); if (s.length === 1) ctx.lineTo(tx(s[0][0]) + .1, ty(s[0][1])); ctx.stroke(); }); }
+  if (initial) { strokes = String(initial).split('|').map(s => s.split(' ').map(p => p.split(',').map(Number))).filter(s => s.length && s.every(p => p.length === 2 && !isNaN(p[0]))); pts = strokes.reduce((a, s) => a + s.length, 0); draw(); }
+  const pos = e => { const r = canvas.getBoundingClientRect(); return [Math.round(fx(e.clientX - r.left)), Math.round(fy(e.clientY - r.top))]; };
+  canvas.addEventListener('pointerdown', e => { if (!W()) return; e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ } cur = [pos(e)]; strokes.push(cur); pts++; draw(); });
+  canvas.addEventListener('pointermove', e => { if (!cur || pts > 2500) return; const p = pos(e); const l = cur[cur.length - 1]; if (Math.abs(p[0] - l[0]) + Math.abs(p[1] - l[1]) < 6) return; cur.push(p); pts++; draw(); });
+  const end = () => { cur = null; };
+  canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end); canvas.addEventListener('pointerleave', end);
+  return {clear() { strokes = []; pts = 0; draw(); }, value() { return strokes.map(s => s.map(p => p.join(',')).join(' ')).join('|'); }};
+}
+function diagramHTML() {
+  const dz = (v, cls = '') => `<div class="dz" data-view="${v}"><div class="${cls}">${SVG[v === 'left' || v === 'right' ? 'side' : v]}</div></div>`;
+  return `<div class="diag">
+    <div class="dv side">${dz('left')}<em>Left side</em></div>
+    <div class="dv side">${dz('right', 'flip')}<em>Right side</em></div>
+    <div class="dv top">${dz('top')}<em>Top · front ↑</em></div>
+    <div class="fr2"><div class="dv">${dz('front')}<em>Front</em></div><div class="dv">${dz('rear')}<em>Rear</em></div></div></div>`;
+}
+function damageSummary(marks, phase) {
+  const by = {};
+  marks.filter(m => m.p === phase).forEach(m => { const k = VIEWN[m.v] || m.v; (by[k] = by[k] || []).push((CODES.find(c => c[0] === m.c) || [m.c, m.c])[1]); });
+  return Object.entries(by).map(([k, a]) => `${k}: ${a.join(', ')}`).join('; ');
+}
+function editHandover(id, o = {}) {
+  const src = id ? byId('handovers', id) : null;
+  if (id && !src) return;
+  const only = activeVehicles().length === 1 ? activeVehicles()[0].id : '';
+  const pre = o.vid || only;
+  const rec = src ? clone(src) : {reportNo: nextReportNo(), vid: pre, model: pre ? (byId('vehicles', pre) || {}).make || '' : '', out: {dt: nowLocal()}, in: {}, marks: [], sig: {}};
+  rec.out = rec.out || {}; rec.in = rec.in || {};
+  const marks = (rec.marks || []).map(m => Object.assign({}, m));
+  let phase = id ? 'in' : 'out', code = 'S';
+  const odoNow = rec.vid ? latestOdo(rec.vid) : null;
+  const pm = photoManager(rec.photos, {out: 'Check-out', in: 'Return'}, (g, t) => { const rn = ($('#f_reportNo') || {}).value; return join([fmtDT(t), curReg(), rn && 'Report ' + rn, g === 'out' ? 'Check-out' : 'Return']); });
+  const html = `${formHTML([T('reportNo', 'Report no.')], rec)}
+    <section class="sgrp"><h2>Rental details</h2>${formHTML(HO_RENT, rec)}</section>
+    <section class="hcol" id="ho-out"><div class="hct">Check-out · handover</div>${formHTML(HO_OUT, rec)}</section>
+    <section class="hcol" id="ho-in"><div class="hct">Check-in · return</div>${formHTML(HO_IN, rec)}${W() && !(rec.in && rec.in.dt) ? '<div class="qa"><button class="btn sm" type="button" data-act="ho-now">Returned now</button></div>' : ''}</section>
+    <section class="sgrp" id="ho-dmg"><h2>Damage diagram</h2>
+      <p class="legend">Mark existing damage in <b>black</b> at check-out and new damage in <b class="r">red</b> at check-in. <b>S</b> scratch · <b>D</b> dent · <b>C</b> chip / crack · <b>B</b> broken · <b>M</b> missing</p>
+      <div class="dtools"><div class="seg" id="dPhase" role="group" aria-label="Marking" data-req data-v="${phase}"><button type="button" data-sv="out" aria-pressed="${phase === 'out'}">Check-out · black</button><button type="button" data-sv="in" aria-pressed="${phase === 'in'}">Check-in · red</button></div>
+      <div class="seg" id="dCode" role="group" aria-label="Damage type" data-req data-v="S">${CODES.map(([c, l]) => `<button type="button" data-sv="${c}" aria-pressed="${c === 'S'}" title="${l}">${c} <span style="font-weight:500">${l}</span></button>`).join('')}</div></div>
+      <p class="hint">Tap the car to add a mark. Tap a mark to remove it.</p>
+      ${diagramHTML()}
+      <div id="dmgLog"></div></section>
+    <section class="sgrp" id="ho-photos"><h2>Photos</h2><p class="hint">Take dated photos of all four corners, the dashboard and any damage, at check-out and at return.</p>${photoSection(pm)}</section>
+    <section class="sgrp"><h2>Notes</h2>${formHTML([T('notes', 'Notes', 'textarea', {w: 'wide'})], rec)}</section>
+    <section class="sgrp"><h2>Signatures</h2><div class="sigs">${SIGS.map(([k, l]) => `<div class="sigbox"><div class="sl"><span>${esc(l)}</span>${W() ? `<button type="button" data-act="sig-clear" data-sk="${k}">Clear</button>` : ''}</div><canvas data-sig="${k}" aria-label="${esc(l)} signature"></canvas></div>`).join('')}</div>
+      <p class="decl">By signing, the customer confirms the vehicle condition, fuel level and odometer reading recorded above are correct. Take dated photos of all four corners, the dashboard and any damage at check-out and at return.</p></section>`;
+  const pads = {};
+  const drawMarks = body => {
+    $$('.dz', body).forEach(z => {
+      $$('.mk', z).forEach(e => e.remove());
+      marks.forEach((m, i) => { if (m.v !== z.dataset.view) return; const b = document.createElement('button'); b.type = 'button'; b.className = 'mk' + (m.p === 'in' ? ' in' : ''); b.style.left = m.x + '%'; b.style.top = m.y + '%'; b.textContent = m.c; b.dataset.i = i; b.setAttribute('aria-label', `${m.p === 'in' ? 'New' : 'Existing'} ${(CODES.find(c => c[0] === m.c) || ['', m.c])[1]}, ${VIEWN[m.v]}. Tap to remove.`); z.appendChild(b); });
+    });
+    const nIn = marks.filter(m => m.p === 'in').length;
+    $('#dmgLog', body).innerHTML = nIn && W() ? `<div class="banner warn" style="margin-top:4px"><b>${plural(nIn, 'new damage mark')}</b> at return. <button class="btn sm dark" type="button" data-act="ho-dmglog" style="margin-left:6px">Add to Damage &amp; incident log</button></div>` : '';
+  };
+  const collect = body => {
+    const d = readForm(body);
+    const all = [...HO_RENT, ...HO_OUT, ...HO_IN];
+    validate(all, d, body);
+    if (!d.out || !d.out.dt) { const el = $('#f_out_dt', body); el.closest('.fld').classList.add('bad'); el.focus(); throw new Error('Check-out date & time is needed.'); }
+    if (d.in && d.in.dt && d.in.dt < d.out.dt) throw new Error('The return date is before the check-out date.');
+    if (num(d.in && d.in.odo) != null && num(d.out.odo) != null && d.in.odo < d.out.odo) throw new Error('The return odometer is lower than at check-out.');
+    if (pm.pending) throw new Error('Wait for the photos to finish uploading.');
+    d.marks = marks;
+    d.photos = pm.clean();
+    d.sig = {}; Object.entries(pads).forEach(([k, p]) => { const v = p.value(); if (v) d.sig[k] = v; });
+    d.created = rec.created || Date.now();
+    return d;
+  };
+  let savedId = id;
+  const save = async body => { const d = collect(body); savedId = savedId || newId('handovers'); await putDoc('handovers', savedId, d); await commitPhotos(pm, 'handovers', savedId); return d; };
+  openSheet({title: id ? `Handover & return · report ${rec.reportNo || ''}` : 'New handover & return report', html,
+    save: async body => { await save(body); },
+    del: id ? async () => { await delDoc('handovers', id); await purgePhotos(rec.photos, 'handovers', id); } : null,
+    after: body => {
+      $$('canvas[data-sig]', body).forEach(c => { pads[c.dataset.sig] = makePad(c, rec.sig && rec.sig[c.dataset.sig]); });
+      drawMarks(body);
+      if (odoNow != null) { const i = $('#f_out_odo', body); if (i && !i.value) i.placeholder = 'Last ' + n0(odoNow); }
+      if (num(rec.out.odo) != null) { const i = $('#f_in_odo', body); if (i) i.placeholder = 'Out ' + n0(rec.out.odo); }
+      if (o.ret) { const t = $('#ho-in', body); if (t) setTimeout(() => t.scrollIntoView({block: 'start'}), 30); }
+    }});
+  sheet.ho = {
+    tap(e, body) {
+      if (!W()) return;
+      const mk = e.target.closest('.mk');
+      if (mk) { const m = marks[+mk.dataset.i]; if (m && m.p !== phase) { toast(`Switch to ${m.p === 'in' ? 'Check-in' : 'Check-out'} to remove this mark`); return; } marks.splice(+mk.dataset.i, 1); drawMarks(body); return; }
+      const z = e.target.closest('.dz'); if (!z) return;
+      const r = z.getBoundingClientRect();
+      const x = Math.round((e.clientX - r.left) / r.width * 1000) / 10, y = Math.round((e.clientY - r.top) / r.height * 1000) / 10;
+      if (x < 0 || x > 100 || y < 0 || y > 100) return;
+      marks.push({v: z.dataset.view, x, y, c: code, p: phase}); drawMarks(body);
+    },
+    setPhase(v) { phase = v; }, setCode(v) { code = v; },
+    clearSig(k) { if (pads[k]) pads[k].clear(); },
+    async logDamage(body) {
+      try {
+        const d = await save(body);
+        const what = 'New damage at return: ' + damageSummary(marks, 'in') + '.';
+        closeSheet();
+        const photos = (d.photos || []).filter(x => x.p === 'in').map(x => Object.assign({}, x, {p: 'dmg'}));
+        editLog('damage', null, {vid: d.vid, date: (d.in && d.in.dt ? d.in.dt.slice(0, 10) : todayISO()), ref: join(['Report ' + (d.reportNo || ''), d.booking]), customer: d.customer, what, photos});
+      } catch (e) { shMsg(e.message || String(e)); }
+    },
+    vehicleChanged(sel, body) {
+      const v = byId('vehicles', sel.value); const mm = $('#f_model', body);
+      if (v && mm && !mm.value) mm.value = v.make || '';
+      const odo = v ? latestOdo(v.id) : null; const i = $('#f_out_odo', body); if (i) i.placeholder = odo != null ? 'Last ' + n0(odo) : '';
+    },
+  };
+  sheet.pm = pm;
+  sheet.cleanup = () => { sheet.ho = null; };
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener('click', e => {
+  // segmented buttons
+  const sb = e.target.closest('.seg button[data-sv]');
+  if (sb) {
+    const g = sb.closest('.seg'); const v = sb.dataset.sv;
+    const nv = (g.dataset.v === v && !('req' in g.dataset)) ? '' : v;
+    g.dataset.v = nv; $$('button[data-sv]', g).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sv === nv)));
+    if (sheet.ho && g.id === 'dPhase') sheet.ho.setPhase(nv);
+    if (sheet.ho && g.id === 'dCode') sheet.ho.setCode(nv);
+    return;
+  }
+  const mb = e.target.closest('.seg.multi button[data-mv]');
+  if (mb) {
+    mb.setAttribute('aria-pressed', String(mb.getAttribute('aria-pressed') !== 'true'));
+    const g = mb.closest('.seg'); g.dataset.v = $$('button[data-mv]', g).filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.dataset.mv).join(' ');
+    return;
+  }
+  if (sheet.ho && e.target.closest('#shBody .dz')) { sheet.ho.tap(e, $('#shBody')); return; }
+  const t = e.target.closest('[data-act]'); if (!t) return;
+  const a = t.dataset.act, id = t.dataset.id || '';
+  const st = top();
+  switch (a) {
+    case 'back': back(); break;
+    case 'tab': go(t.dataset.v, {}, true); break;
+    case 'go': go(t.dataset.v, t.dataset.vid ? {vid: t.dataset.vid} : {}); break;
+    case 'open-car': go('car', {id}); break;
+    case 'car-tab': st.tab = t.dataset.tab; render(); break;
+    case 'toggle-sold': st.sold = !st.sold; render(); break;
+    case 'ho-filter': st.f = t.dataset.f; render(); break;
+    case 'pick-check': st.vid = id; render(); break;
+    case 'edit-company': editCompany(); break;
+    case 'new-car': editVehicle(null, 'reg'); break;
+    case 'edit-veh': editVehicle(id, t.dataset.g); break;
+    case 'new-log': editLog(t.dataset.col, null, t.dataset.vid ? (t.dataset.col === 'extras' ? {fittedTo: t.dataset.vid} : {vid: t.dataset.vid}) : {}); break;
+    case 'edit-log': editLog(t.dataset.col, id); break;
+    case 'edit-monthly': editMonthly(id, t.dataset.year); break;
+    case 'mfill': {
+      const body = $('#shBody'); const res = fromLogs(id, t.dataset.year); let n = 0;
+      $$('tr[data-m]', body).forEach(tr => { const r = res[+tr.dataset.m - 1]; Object.entries(r).forEach(([k, v]) => { const inp = tr.querySelector(`input[data-mf="${k}"]`); if (inp && v > 0) { inp.value = Math.round(v * 100) / 100; n++; } }); });
+      monthlyTotals(body); $('#mNote', body).textContent = n ? `Filled ${plural(n, 'box', 'boxes')} from your logs. Check them, add anything else under “Other”, then Save.` : 'Nothing logged for this car in this year yet.';
+      break;
+    }
+    case 'new-check': editCheck(null, t.dataset.vid || (st.v === 'checks' && st.vid) || ''); break;
+    case 'edit-check': editCheck(id); break;
+    case 'ck-all': $$('#shBody .ckseg').forEach(g => { g.dataset.v = 'ok'; $$('button', g).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sv === 'ok'))); }); break;
+    case 'new-ho': editHandover(null, {vid: t.dataset.vid || ''}); break;
+    case 'open-ho': editHandover(id); break;
+    case 'return-ho': editHandover(id, {ret: true}); break;
+    case 'ho-now': { const i = $('#f_in_dt'); if (i) i.value = nowLocal(); const p = $('#dPhase'); if (p) { p.dataset.v = 'in'; $$('button', p).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sv === 'in'))); sheet.ho && sheet.ho.setPhase('in'); } break; }
+    case 'ho-dmglog': if (sheet.ho) sheet.ho.logDamage($('#shBody')); break;
+    case 'sig-clear': if (sheet.ho) sheet.ho.clearSig(t.dataset.sk); break;
+    case 'copy-card': {
+      const txt = cardText(id);
+      const fallback = () => { const ta = $('#cardTxt'); if (ta) { ta.classList.remove('sr'); ta.removeAttribute('aria-hidden'); ta.style.cssText = 'width:100%;height:170px;margin-top:8px'; ta.select(); } toast('Select the text and copy it'); };
+      try { navigator.clipboard.writeText(txt).then(() => toast('Card copied. Paste it into WhatsApp.'), fallback); } catch (x) { fallback(); }
+      break;
+    }
+    case 'ph-view': lbOpen(t.dataset.pid); break;
+    case 'ph-rm': {
+      const pm = sheet.pm; if (!pm) break;
+      const i = pm.list.findIndex(x => x.id === t.dataset.pid);
+      if (i >= 0) { pm.list.splice(i, 1); pm.removed.add(t.dataset.pid); refreshPhotos(pm); toast('Photo removed. Cancel to keep it.'); }
+      break;
+    }
+    case 'lb-close': lbClose(); break;
+    case 'lb-prev': if (lb.i > 0) { lb.i--; lbShow(); } break;
+    case 'lb-next': if (lb.i < lb.items.length - 1) { lb.i++; lbShow(); } break;
+    case 'bk-make': {
+      const ph = $('#bkPh') ? $('#bkPh').checked : true;
+      t.disabled = true; t.textContent = 'Making backup…';
+      makeBackup(ph).then(render).catch(() => { toast('Couldn’t make the backup file.', true); render(); });
+      break;
+    }
+    case 'bk-share': shareBackup(); break;
+    case 'bk-cancel': RS = null; render(); break;
+    case 'bk-restore': {
+      if (!RS) break;
+      if (!t.classList.contains('armed')) { t.classList.add('armed'); t.textContent = 'Tap again to replace everything'; setTimeout(() => { t.classList.remove('armed'); t.textContent = 'Replace everything with this backup'; }, 4000); break; }
+      t.disabled = true; t.textContent = 'Restoring…';
+      restoreBackup(RS.data).then(() => { toast('Backup restored'); go('home', {}, true); }).catch(e => { toast(e.message, true); render(); });
+      break;
+    }
+    case 'install': if (installEvt) { const ev = installEvt; installEvt = null; ev.prompt(); Promise.resolve(ev.userChoice).finally(render); } break;
+    case 'install-hide': setMeta('installHide', true).then(render); break;
+    case 'close-sheet': closeSheet(); break;
+    case 'sheet-save': doSave(); break;
+    case 'sheet-del': doDelete(); break;
+  }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.change === 'filter') { top().vid = t.value; render(); }
+  else if (t.dataset.change === 'year') { top().year = +t.value; render(); }
+  else if (t.dataset.restore) {
+    const f = t.files && t.files[0]; t.value = '';
+    if (f) readBackup(f).then(d => { RS = {data: d, exported: d.exported, company: d.company, cars: d.docs.filter(x => x && x.col === 'vehicles').length, entries: d.docs.filter(x => x && x.col !== 'vehicles' && x.col !== 'company').length, photos: Object.keys(d.photos || {}).length}; render(); }).catch(e => toast(e.message, true));
+  }
+  else if (t.dataset.up && sheet.pm) { const files = [...(t.files || [])]; t.value = ''; if (files.length) addPhotos(sheet.pm, files, t.dataset.up); }
+  else if (sheet.ho && t.dataset.k === 'vid' && t.closest('#shBody')) sheet.ho.vehicleChanged(t, $('#shBody'));
+});
+document.addEventListener('error', e => { const el = e.target; if (el && el.tagName === 'IMG' && el.closest('.ph')) el.closest('.ph').classList.add('broken'); }, true);
+document.addEventListener('input', e => { if (e.target.dataset.mf) monthlyTotals($('#shBody')); });
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="button"][data-act]')) { e.preventDefault(); e.target.click(); }
+  if (e.key === 'Escape') { if (!$('#lb').hidden) lbClose(); else if ($('#sheet').classList.contains('open')) closeSheet(); }
+});
+
+/* ---------------- start ---------------- */
+const h0 = location.hash.slice(1);
+if (TOPS.includes(h0) && h0 !== 'home') nav.stack = [{v:'home'}, {v:h0}];
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; scheduleRender(); });
+window.addEventListener('appinstalled', () => { installEvt = null; scheduleRender(); });
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) navigator.serviceWorker.register('sw.js').catch(() => {});
+render();
+boot();
+})();
+</script>
+</body>
+</html>
