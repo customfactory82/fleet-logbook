@@ -16,12 +16,19 @@ The whole folder must be on a website that uses https.
 Any free static host works, for example Netlify, GitHub Pages or Cloudflare Pages.
 Upload the folder exactly as it is, keeping the icons and fonts folders.
 
+ACTIVATION
+The app asks for a company name and an activation code the first time it opens.
+Each code only works with the company name it was made for, and the name is then
+locked in the app. Make codes on your private "Fleet Logbook Activation Codes" page
+in Claude (never put that page or its key in this repository).
+
 GIVE IT TO A CUSTOMER
-Send them the website link. They open it, then install it:
+Make their activation code, then send them the message from the codes page.
+They open the link, then install it:
   iPhone:  Safari > Share > Add to Home Screen  (always open it from the Home Screen)
   Android: Chrome > menu (3 dots) > Install app / Add to Home screen
 Every phone keeps its own records, so the same link works for every customer.
-They type their company name in Company details on the first screen.
+They open it from the home screen and enter their company name and activation code.
 
 BACKUPS
 Records stay on the phone only. Tell customers to use Backup & restore every week

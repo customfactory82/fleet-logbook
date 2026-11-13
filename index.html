@@ -553,6 +553,7 @@ async function loadAll() {
 async function boot() {
   try { IDB = await idbOpen(); await loadAll(); MODE = 'local'; }
   catch (e) { IDB = null; MODE = 'nostore'; }
+  licensed = await checkLicence(META.licence);
   render();
 }
 
@@ -569,6 +570,8 @@ function bannerHTML() {
   return '';
 }
 function render() {
+  if (MODE !== 'connecting' && !licensed) { renderGate(); return; }
+  $('nav.tabs').hidden = false;
   const st = top();
   const view = VIEWS[st.v] || VIEWS.home;
   const r = view(st);
@@ -630,7 +633,7 @@ function fieldHTML(f, val, o = {}) {
   const extra = f.t === 'num' ? ' inputmode="decimal" step="any" min="0"' : '';
   const list = f.o ? ` list="${id}_dl"` : '';
   const dl = f.o ? `<datalist id="${id}_dl">${f.o.map(x => `<option value="${esc(x)}"></option>`).join('')}</datalist>` : '';
-  return `<div class="${cls}"><label for="${id}">${esc(f.l)}${rq}</label><input id="${id}" type="${type}" data-k="${f.k}" value="${esc(v)}"${extra}${list}${ph} autocomplete="off">${dl}${hint}</div>`;
+  return `<div class="${cls}"><label for="${id}">${esc(f.l)}${rq}</label><input id="${id}" type="${type}" data-k="${f.k}" value="${esc(v)}"${extra}${list}${ph}${f.ro ? ' readonly' : ''} autocomplete="off">${dl}${hint}</div>`;
 }
 const formHTML = (fields, rec, o = {}) => `<div class="fg">${fields.map(f => fieldHTML(f, getPath(rec || {}, f.k), o)).join('')}</div>`;
 function readForm(root) {
@@ -770,7 +773,7 @@ VIEWS.home = () => {
   const groups = ['Fleet','Vehicle file','Every rental','In the car'];
   b += `<section class="inside" aria-label="What's inside">${groups.map(g => `<div><div class="grp-h">${esc(g)}</div><div class="secs">${Object.entries(SEC).filter(([, s]) => s.tag === g).map(([k, s]) => `<button class="sec" type="button" data-act="go" data-v="${k}"><span class="sn">${pad2(s.n)}</span><span class="st"><b>${esc(s.name)}</b><small>${esc(s.desc)}</small></span><span class="sc ${counts[k][1] || ''}">${esc(counts[k][0])}</span></button>`).join('')}</div></div>`).join('')}</section>`;
   b += `<div class="qa"><button class="btn sm" type="button" data-act="go" data-v="help">How to use this logbook</button><button class="btn sm" type="button" data-act="go" data-v="backup">Backup &amp; restore</button></div>`;
-  b += `<div class="foot"><span>Made by <b>CUSTOM FACTORY</b> · Fleet servicing &amp; repairs · Providence &amp; La Misère, Mahé</span><span>WhatsApp +248 282 6787 · customfactory82@gmail.com</span></div>`;
+  b += `<div class="foot"><span>Made by <b>CUSTOM FACTORY</b> · Fleet servicing &amp; repairs · Providence &amp; La Misère, Mahé</span><span>WhatsApp +248 282 6787 · customfactory82@gmail.com</span>${META.licence ? `<span>Licensed to <b>${esc(META.licence.name)}</b> for its own fleet. Not for resale.</span>` : ''}</div>`;
   const d = new Date();
   return {title: 'Fleet overview', sub: `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`, body: b};
 };
@@ -786,6 +789,7 @@ VIEWS.help = () => ({title: 'How to use this logbook', sub: 'Set it up once, the
   <section class="card"><h2>Back up every week</h2><p>Open <a href="#backup">Backup &amp; restore</a>, make a backup file and send it to yourself on WhatsApp, or save it to Google Drive or iCloud. If the phone is lost or broken, open the logbook on the new phone and restore the file.</p></section>
   <section class="card"><h2>iPhone</h2><p>Add the logbook to your Home Screen (in Safari tap Share, then Add to Home Screen) and always open it from there. Safari can clear saved records for websites that aren’t opened for a week.</p></section>
   <section class="card"><h2>Photos</h2><p>Add photos to every handover &amp; return report and to damage entries. Each photo is stamped with the date, time, reg. no. and report number, so it stands up if a customer disputes damage.</p></section>
+  <section class="card"><h2>Licence</h2><p>This logbook is licensed to <b>${esc((META.licence || {}).name || 'your company')}</b> for use in its own fleet. Please don’t share or resell it. On a new phone, enter the same company name and activation code again, then restore your backup.</p></section>
   <section class="card"><h2>Alerts</h2><p>Home shows anything that expires or falls due in the next 30 days: insurance, vehicle licence, vehicle test, hire licence or permit, and services by date or within 1,000 km.</p></section>`});
 
 VIEWS.fleet = st => {
@@ -1100,6 +1104,51 @@ function lbOpen(pid) {
 }
 function lbClose() { const el = $('#lb'); if (!el || el.hidden) return; el.hidden = true; $('#lbImg').removeAttribute('src'); }
 
+/* ---------------- licence ---------------- */
+const LKA = [90, 58, 31, 241, 209, 235, 167, 121, 158, 183, 22, 208, 229, 220, 195, 76, 93, 212, 236, 254, 223, 220, 194, 19, 68, 71, 21, 58, 206, 242, 246, 55], LKB = [35, 231, 149, 41, 116, 162, 196, 227, 230, 28, 219, 244, 215, 145, 219, 15, 249, 219, 54, 41, 243, 28, 255, 202, 141, 253, 138, 70, 147, 42, 200, 121];
+const B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+let licensed = false;
+const normName = v => String(v || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const normCode = v => String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
+const fmtCode = c => (normCode(c).match(/.{1,4}/g) || []).join('-');
+async function licenceCode(name) {
+  const key = await crypto.subtle.importKey('raw', new Uint8Array(LKA.map((x, i) => x ^ LKB[i])), {name: 'HMAC', hash: 'SHA-256'}, false, ['sign']);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode('CF-FLEET-LOGBOOK-1|' + normName(name))));
+  let val = 0, bits = 0, out = '';
+  for (const b of sig) { val = ((val << 8) | b) & 0xFFFF; bits += 8; while (bits >= 5) { out += B32[(val >> (bits - 5)) & 31]; bits -= 5; } if (out.length >= 12) break; }
+  return out.slice(0, 12);
+}
+async function checkLicence(l) { if (!l || !l.name || !l.code || !normName(l.name)) return false; try { return (await licenceCode(l.name)) === normCode(l.code); } catch (e) { return false; } }
+function renderGate() {
+  $('nav.tabs').hidden = true; $('#hBack').hidden = true; $('#hCo').textContent = '';
+  $('#hTitle').textContent = 'Activate your logbook';
+  $('#hSub').textContent = 'Enter your company name and the activation code from Custom Factory.'; $('#hSub').hidden = false;
+  if ($('#gate')) return;
+  const wa = 'https://wa.me/2482826787?text=' + encodeURIComponent('Hi Custom Factory, I would like to buy the Car Hire Fleet Logbook app.');
+  $('#main').innerHTML = bannerHTML() + `<section class="card" id="gate"><h2>Activate</h2>
+    <p style="margin-bottom:12px">Type the company name exactly as it appears in your message from Custom Factory. Spaces and capital letters don’t matter.</p>
+    <div class="fg"><div class="fld wide"><label for="acName">Company name</label><input id="acName" autocomplete="organization" value="${esc(S.company.name || '')}"></div>
+    <div class="fld wide"><label for="acCode">Activation code</label><input id="acCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div></div>
+    <p class="sh-msg" id="acMsg" role="status" style="margin-top:10px"></p>
+    <div class="qa" style="margin-top:12px"><button class="btn pri" type="button" data-act="activate">Activate</button></div></section>
+    <section class="card"><h2>No code yet?</h2><p>The Car Hire Fleet Logbook app is sold by Custom Factory, Mahé. WhatsApp <b>+248 282 6787</b> to buy it.</p>
+    <div class="qa" style="margin-top:12px"><a class="btn" href="${wa}" target="_blank" rel="noopener">Message Custom Factory</a></div></section>
+    <div class="foot"><span>Made by <b>CUSTOM FACTORY</b> · Fleet servicing &amp; repairs · Providence &amp; La Misère, Mahé</span></div>`;
+}
+async function activate() {
+  const msg = t => { const m = $('#acMsg'); if (m) m.textContent = t; };
+  const name = ($('#acName').value || '').trim().replace(/\s+/g, ' '), code = normCode($('#acCode').value);
+  if (!normName(name)) { msg('Type your company name.'); $('#acName').focus(); return; }
+  if (code.length !== 12) { msg('The activation code has 12 letters and numbers, like ABCD-EFGH-JKLM.'); $('#acCode').focus(); return; }
+  if (!(window.crypto && crypto.subtle)) { msg('Open the logbook from its https:// link to activate it.'); return; }
+  const want = await licenceCode(name);
+  if (want !== code) { msg('That code doesn’t match this company name. Check both against your message from Custom Factory.'); return; }
+  await setMeta('licence', {name, code: fmtCode(code), at: localStamp(new Date())});
+  licensed = true;
+  if (S.company.name !== name) { try { await putDoc('company', 'profile', Object.assign({}, S.company, {name})); } catch (e) { /* shown on next save */ } }
+  toast('Logbook activated'); go('home', {}, true);
+}
+
 /* ---------------- backup, restore, install ---------------- */
 let BK = null, RS = null, installEvt = null;
 const slug = s => String(s || 'Logbook').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'Logbook';
@@ -1165,6 +1214,7 @@ async function restoreBackup(d) {
   try { await done(t); } catch (e) { throw new Error(saveErr(e)); }
   Object.keys(URLS).forEach(k => { URL.revokeObjectURL(URLS[k]); delete URLS[k]; });
   await loadAll(); askPersist();
+  if (META.licence && S.company.name !== META.licence.name) await putDoc('company', 'profile', Object.assign({}, S.company, {name: META.licence.name}));
   RS = null; if (BK && BK.url) URL.revokeObjectURL(BK.url); BK = null;
 }
 async function showSpace() { const el = $('#bkSpace'); if (!el) return; try { const e = await navigator.storage.estimate(); el.textContent = fmtSize(e.usage || 0); } catch (x) { el.textContent = '—'; } }
@@ -1187,9 +1237,10 @@ VIEWS.backup = () => {
 
 /* ---------------- editors ---------------- */
 function editCompany() {
-  const co = S.company || {};
-  openSheet({title: 'Company details', html: `<p class="muted">This logbook belongs to:</p>${formHTML(COMPANY, co, {isNew: !co.name})}`,
-    save: async body => { const d = readForm(body); await putDoc('company', 'profile', d); }});
+  const co = S.company || {}; const lic = META.licence;
+  const fields = COMPANY.map(f => f.k === 'name' && lic ? Object.assign({}, f, {ro: 1, hint: 'This is the licensed name. Contact Custom Factory to change it.'}) : f);
+  openSheet({title: 'Company details', html: `<p class="muted">This logbook belongs to:</p>${formHTML(fields, Object.assign({}, co, lic ? {name: lic.name} : {}), {isNew: !co.name})}`,
+    save: async body => { const d = readForm(body); if (lic) d.name = lic.name; await putDoc('company', 'profile', d); }});
 }
 function editVehicle(id, g = 'reg') {
   const v = id ? byId('vehicles', id) : null;
@@ -1510,6 +1561,7 @@ document.addEventListener('click', e => {
     }
     case 'install': if (installEvt) { const ev = installEvt; installEvt = null; ev.prompt(); Promise.resolve(ev.userChoice).finally(render); } break;
     case 'install-hide': setMeta('installHide', true).then(render); break;
+    case 'activate': activate(); break;
     case 'close-sheet': closeSheet(); break;
     case 'sheet-save': doSave(); break;
     case 'sheet-del': doDelete(); break;
@@ -1530,6 +1582,7 @@ document.addEventListener('error', e => { const el = e.target; if (el && el.tagN
 document.addEventListener('input', e => { if (e.target.dataset.mf) monthlyTotals($('#shBody')); });
 document.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="button"][data-act]')) { e.preventDefault(); e.target.click(); }
+  if (e.key === 'Enter' && e.target.closest('#gate') && e.target.tagName === 'INPUT') { e.preventDefault(); activate(); }
   if (e.key === 'Escape') { if (!$('#lb').hidden) lbClose(); else if ($('#sheet').classList.contains('open')) closeSheet(); }
 });
 
