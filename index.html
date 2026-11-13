@@ -1124,14 +1124,14 @@ function renderGate() {
   $('#hTitle').textContent = 'Activate your logbook';
   $('#hSub').textContent = 'Enter your company name and the activation code from Custom Factory.'; $('#hSub').hidden = false;
   if ($('#gate')) return;
-  const wa = 'https://wa.me/2482826787?text=' + encodeURIComponent('Hi Custom Factory, I would like to buy the Car Hire Fleet Logbook app.');
+  const wa = 'https://wa.me/2482788368?text=' + encodeURIComponent('Hi Custom Factory, I would like to buy the Car Hire Fleet Logbook app and get an activation code.');
   $('#main').innerHTML = bannerHTML() + `<section class="card" id="gate"><h2>Activate</h2>
     <p style="margin-bottom:12px">Type the company name exactly as it appears in your message from Custom Factory. Spaces and capital letters don’t matter.</p>
     <div class="fg"><div class="fld wide"><label for="acName">Company name</label><input id="acName" autocomplete="organization" value="${esc(S.company.name || '')}"></div>
     <div class="fld wide"><label for="acCode">Activation code</label><input id="acCode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div></div>
     <p class="sh-msg" id="acMsg" role="status" style="margin-top:10px"></p>
     <div class="qa" style="margin-top:12px"><button class="btn pri" type="button" data-act="activate">Activate</button></div></section>
-    <section class="card"><h2>No code yet?</h2><p>The Car Hire Fleet Logbook app is sold by Custom Factory, Mahé. WhatsApp <b>+248 282 6787</b> to buy it.</p>
+    <section class="card"><h2>No code yet?</h2><p>The Car Hire Fleet Logbook app is sold by Custom Factory, Mahé. WhatsApp <b>+248 278 8368</b> to buy it and get your activation code.</p>
     <div class="qa" style="margin-top:12px"><a class="btn" href="${wa}" target="_blank" rel="noopener">Message Custom Factory</a></div></section>
     <div class="foot"><span>Made by <b>CUSTOM FACTORY</b> · Fleet servicing &amp; repairs · Providence &amp; La Misère, Mahé</span></div>`;
 }
